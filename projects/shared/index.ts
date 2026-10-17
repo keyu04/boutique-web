@@ -4,3 +4,6 @@ export * from './src/model/catalog';
 export * from './src/brand';
 export * from './src/model/shipping';
 export * from './api/shipping-api';
+export * from './src/model/orders';
+export * from './api/orders-api';
+export * from './src/util/api-error';

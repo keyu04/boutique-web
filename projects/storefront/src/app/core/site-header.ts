@@ -15,8 +15,8 @@ import { BagService } from './bag.service';
     </header>
   `,
   styles: `
-    :host { display: block; }
-    .topbar { max-width: 1342px; margin: 0 auto; padding: 28px 24px;
+    :host { display: block; border-bottom: 1px solid var(--blush, #ecd5d3); }
+    .topbar { width: calc(100% - 48px); max-width: 1200px; margin: 0 auto; padding: 28px 0;
       display: flex; align-items: center; justify-content: space-between; }
     .wordmark { font-family: var(--font-display, 'Bodoni Moda', serif); font-size: 1.6rem;
       letter-spacing: 0.35em; text-transform: uppercase; text-decoration: none;

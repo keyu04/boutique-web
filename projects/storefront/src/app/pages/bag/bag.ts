@@ -7,6 +7,7 @@ import { RouterLink } from '@angular/router';
 import { BRAND, ShippingApi } from '@shared';
 import { BagLine, BagService } from '../../core/bag.service';
 import { SiteHeader } from '../../core/site-header';
+import { SiteFooter } from '../../core/site-footer';
 
 interface ShippingResult {
     signature: string; // which bag contents this estimate was calculated for
@@ -17,7 +18,7 @@ interface ShippingResult {
 
 @Component({
     selector: 'app-bag',
-    imports: [CurrencyPipe, RouterLink, SiteHeader],
+    imports: [CurrencyPipe, RouterLink, SiteHeader, SiteFooter],
     templateUrl: './bag.html',
     styleUrl: './bag.scss',
 })

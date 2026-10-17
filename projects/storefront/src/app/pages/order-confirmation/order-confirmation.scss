@@ -1,0 +1,14 @@
+$burgundy: var(--burgundy, #5c1a2e);
+$blush: var(--blush, #f1e3dc);
+$muted: var(--muted, #7a5a63);
+$display: var(--font-display, 'Bodoni Moda', serif);
+
+:host { display: block; color: $burgundy; }
+.page { max-width: 640px; margin: 0 auto; padding: 24px 24px 80px; text-align: center; }
+h1 { font-family: $display; font-weight: 500; font-size: clamp(2rem, 4vw, 2.6rem); margin: 0 0 16px; }
+.number { font-size: 1.2rem; margin: 0 0 8px; }
+.hint { color: $muted; margin: 0 0 32px; }
+.card { background: $blush; border-radius: 8px; padding: 24px 28px; margin-bottom: 32px; text-align: left; }
+.row { display: flex; justify-content: space-between; margin: 0 0 8px; }
+.total { padding-top: 12px; border-top: 1px solid rgba(0, 0, 0, 0.12); font-size: 1.1rem; }
+.cod { margin: 16px 0 0; font-weight: 600; }

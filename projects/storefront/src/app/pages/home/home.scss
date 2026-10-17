@@ -70,8 +70,4 @@
 .status { color: var(--muted); }
 .error { color: #9b1c31; }
 
-.footer { background: var(--burgundy); color: var(--cream); padding: 40px 24px; }
-.footer-inner { max-width: 1200px; margin: 0 auto; display: flex; justify-content: space-between; gap: 16px; flex-wrap: wrap; }
-.footer-mark { font-family: var(--font-display); letter-spacing: 0.28em; text-transform: uppercase; }
-
 a.item { display: block; color: inherit; text-decoration: none; }

@@ -3,10 +3,11 @@ import { Component, computed, inject, signal } from '@angular/core';
 import { ProductsApi, ProductSummary, BRAND } from '@shared';
 import { RouterLink } from '@angular/router';
 import { SiteHeader } from '../../core/site-header';
+import { SiteFooter } from '../../core/site-footer';
 
 @Component({
   selector: 'app-home',
-  imports: [CurrencyPipe, RouterLink, SiteHeader],
+  imports: [CurrencyPipe, RouterLink, SiteHeader, SiteFooter],
   templateUrl: './home.html',
   styleUrl: './home.scss',
 })

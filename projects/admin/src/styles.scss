@@ -1,1 +1,26 @@
-/* You can add global styles to this file, and also import other style files */
+:root {
+  --burgundy: #5c1a2e;
+  --burgundy-deep: #3d1020;
+  --cream: #f9f0e4;
+  --blush: #f1e3dc;
+  --muted: #7a5a63;
+  --font-display: 'Bodoni Moda', serif;
+  --font-body: 'Hanken Grotesk', system-ui, sans-serif;
+}
+
+*, *::before, *::after { box-sizing: border-box; }
+body { margin: 0; background: var(--cream); color: var(--burgundy); font-family: var(--font-body); }
+
+.btn { display: inline-flex; align-items: center; justify-content: center; height: 48px; padding: 0 28px;
+  border: 0; border-radius: 999px; background: var(--burgundy); color: #fff; font: inherit; font-weight: 600;
+  cursor: pointer; text-decoration: none; }
+.btn:hover:not(:disabled) { background: var(--burgundy-deep); }
+.btn:disabled { opacity: 0.6; cursor: not-allowed; }
+.btn-ghost { background: transparent; color: var(--burgundy); border: 1px solid var(--burgundy); }
+.btn-ghost:hover:not(:disabled) { background: var(--blush); }
+.btn-small { height: 36px; padding: 0 16px; font-size: 0.9rem; }
+
+input:-webkit-autofill, select:-webkit-autofill {
+  -webkit-box-shadow: 0 0 0 1000px #fff inset;
+  -webkit-text-fill-color: #5c1a2e;
+}

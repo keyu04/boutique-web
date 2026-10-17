@@ -12,5 +12,14 @@ export const routes: Routes = [
         path: 'bag',
         loadComponent: () => import('./pages/bag/bag').then(m => m.BagPage),
     },
+    {
+        path: 'checkout',
+        loadComponent: () => import('./pages/checkout/checkout').then(m => m.CheckoutPage),
+    },
+    {
+        path: 'order/:orderNumber',
+        loadComponent: () =>
+            import('./pages/order-confirmation/order-confirmation').then(m => m.OrderConfirmationPage),
+    },
     { path: '**', redirectTo: '' },
 ];
