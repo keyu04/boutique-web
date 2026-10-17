@@ -2,10 +2,11 @@ import { CurrencyPipe } from '@angular/common';
 import { Component, computed, inject, signal } from '@angular/core';
 import { ProductsApi, ProductSummary, BRAND } from '@shared';
 import { RouterLink } from '@angular/router';
+import { SiteHeader } from '../../core/site-header';
 
 @Component({
   selector: 'app-home',
-  imports: [CurrencyPipe, RouterLink],
+  imports: [CurrencyPipe, RouterLink, SiteHeader],
   templateUrl: './home.html',
   styleUrl: './home.scss',
 })

@@ -1,0 +1,58 @@
+<app-site-header />
+
+<main class="page">
+  <h1>Your bag</h1>
+
+  @if (bag.lines().length === 0) {
+    <div class="empty">
+      <p>Your bag is empty.</p>
+      <a class="btn" routerLink="/">Browse the collection</a>
+    </div>
+  } @else {
+    <div class="layout">
+      <ul class="lines">
+        @for (l of bag.lines(); track l.variantId) {
+          <li class="line">
+            <a class="thumb" [routerLink]="['/product', l.slug]" [attr.aria-label]="l.name">
+              @if (l.image) { <img [src]="l.image" [alt]="l.name" /> }
+            </a>
+
+            <div class="details">
+              <a class="name" [routerLink]="['/product', l.slug]">{{ l.name }}</a>
+              <p class="sub">
+                Size {{ l.size }} · {{ l.price | currency: 'INR' : 'symbol' : '1.0-0' }}
+              </p>
+
+              <div class="qty" role="group" [attr.aria-label]="'Quantity for ' + l.name">
+                <button type="button" aria-label="Decrease quantity"
+                        [disabled]="l.quantity <= 1" (click)="change(l, -1)">−</button>
+                <span aria-live="polite">{{ l.quantity }}</span>
+                <button type="button" aria-label="Increase quantity"
+                        [disabled]="l.quantity >= l.maxQuantity" (click)="change(l, 1)">+</button>
+              </div>
+              @if (l.quantity >= l.maxQuantity) {
+                <p class="limit">Maximum for this size</p>
+              }
+            </div>
+
+            <div class="end">
+              <strong>{{ l.price * l.quantity | currency: 'INR' : 'symbol' : '1.0-0' }}</strong>
+              <button type="button" class="remove" (click)="bag.remove(l.variantId)">Remove</button>
+            </div>
+          </li>
+        }
+      </ul>
+
+      <aside class="summary" aria-label="Order summary">
+        <h2>Summary</h2>
+        <p class="row">
+          <span>Subtotal ({{ bag.count() }} items)</span>
+          <strong>{{ bag.subtotal() | currency: 'INR' : 'symbol' : '1.0-0' }}</strong>
+        </p>
+        <p class="note">Shipping is calculated at checkout.</p>
+        <button type="button" class="btn checkout" disabled>Checkout</button>
+        <a class="continue" routerLink="/">Continue shopping</a>
+      </aside>
+    </div>
+  }
+</main>

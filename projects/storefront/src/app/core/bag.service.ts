@@ -32,7 +32,7 @@ export class BagService {
 
     if (existing) {
       if (existing.quantity + qty > maxQuantity) {
-        return `Only ${maxQuantity} available in size ${item.size}.`;
+        return `You already have all ${maxQuantity} available in size ${item.size} in your bag.`;
       }
       this.set(lines.map(l =>
         l.variantId === item.variantId ? { ...l, quantity: l.quantity + qty, maxQuantity } : l));

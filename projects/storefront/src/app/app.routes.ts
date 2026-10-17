@@ -8,5 +8,9 @@ export const routes: Routes = [
         loadComponent: () =>
             import('./pages/product-detail/product-detail').then(m => m.ProductDetailPage),
     },
+    {
+        path: 'bag',
+        loadComponent: () => import('./pages/bag/bag').then(m => m.BagPage),
+    },
     { path: '**', redirectTo: '' },
 ];

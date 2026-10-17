@@ -7,12 +7,13 @@ import { ActivatedRoute, RouterLink } from '@angular/router';
 import { catchError, map, of, switchMap, tap } from 'rxjs';
 import { BRAND, ProductDetail, ProductsApi } from '@shared';
 import { BagService } from '../../core/bag.service';
+import { SiteHeader } from '../../core/site-header';
 
 type PageState = 'loading' | 'ready' | 'notfound' | 'error';
 
 @Component({
   selector: 'app-product-detail',
-  imports: [CurrencyPipe, RouterLink],
+  imports: [CurrencyPipe, RouterLink, SiteHeader],
   templateUrl: './product-detail.html',
   styleUrl: './product-detail.scss',
 })
