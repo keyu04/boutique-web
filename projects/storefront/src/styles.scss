@@ -1,1 +1,36 @@
-/* You can add global styles to this file, and also import other style files */
+:root {
+  --burgundy: #5b1a2e;
+  --burgundy-deep: #2f0d18;
+  --cream: #f8f1e3;
+  --blush: #ecd5d3;
+  --rose: #c97d93;
+  --muted: #7a5a62;
+
+  --font-display: 'Bodoni Moda', 'Didot', Georgia, serif;
+  --font-body: 'Hanken Grotesk', system-ui, sans-serif;
+}
+
+*, *::before, *::after { box-sizing: border-box; }
+
+body {
+  margin: 0;
+  background: var(--cream);
+  color: var(--burgundy-deep);
+  font-family: var(--font-body);
+  line-height: 1.55;
+}
+
+h1, h2, h3 { font-family: var(--font-display); font-weight: 500; line-height: 1.1; margin: 0; }
+img { display: block; max-width: 100%; }
+:focus-visible { outline: 2px solid var(--burgundy); outline-offset: 3px; }
+
+.btn {
+  display: inline-block;
+  padding: 14px 28px;
+  border-radius: 999px;
+  background: var(--burgundy);
+  color: var(--cream);
+  font-weight: 600;
+  text-decoration: none;
+}
+.btn:hover { background: var(--burgundy-deep); }
