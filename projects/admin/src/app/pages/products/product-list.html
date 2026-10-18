@@ -3,6 +3,11 @@
   <a class="btn" routerLink="/products/new">New product</a>
 </div>
 
+<div class="tools">
+  <input #search type="search" class="search" placeholder="Search products" aria-label="Search products"
+         [value]="searchText()" (input)="searchText.set(search.value)" />
+</div>
+
 @if (error(); as e) {
   <div class="notice" role="alert">
     <p>{{ e }}</p>
@@ -12,7 +17,9 @@
 
 @if (data(); as d) {
   @if (d.items.length === 0) {
-    <p class="empty">No products yet.</p>
+    <p class="empty">
+      @if (q()) { No products match “{{ q() }}”. } @else { No products yet. }
+    </p>
   } @else {
     <div class="tablewrap" [class.loading]="loading()" [attr.aria-busy]="loading()">
       <table>
@@ -26,6 +33,7 @@
             <th scope="col" class="num">Margin</th>
             <th scope="col" class="num">Stock</th>
             <th scope="col">Status</th>
+            <th scope="col"><span class="sr">Actions</span></th>
           </tr>
         </thead>
         <tbody>
@@ -35,7 +43,7 @@
                 @if (p.image) { <img class="thumb" [src]="p.image" alt="" /> }
                 @else { <span class="thumb noimg"></span> }
               </td>
-              <td><strong>{{ p.name }}</strong><br /><small>{{ p.slug }}</small></td>
+              <td><a class="name" [routerLink]="['/products', p.id]"><strong>{{ p.name }}</strong></a><br /><small>{{ p.slug }}</small></td>
               <td>{{ p.categoryName }}</td>
               <td class="num">
                 {{ p.price | currency: 'INR' : 'symbol' : '1.0-0' }}
@@ -47,6 +55,7 @@
                 {{ p.totalStock }}@if (p.totalStock <= 5) { <small> low</small> }
               </td>
               <td><span class="badge" [class.off]="!p.isActive">{{ p.isActive ? 'Active' : 'Hidden' }}</span></td>
+              <td><a class="edit" [routerLink]="['/products', p.id]">Edit</a></td>
             </tr>
           }
         </tbody>

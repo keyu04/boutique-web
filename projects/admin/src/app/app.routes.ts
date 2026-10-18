@@ -29,7 +29,12 @@ export const routes: Routes = [
                 data: { roles: ['Admin'] },
                 loadComponent: () => import('./pages/products/product-form').then(m => m.ProductFormPage),
             },
-            // products, orders and reports come next
+            {
+                path: 'products/:id',
+                canActivate: [authGuard],
+                data: { roles: ['Admin'] },
+                loadComponent: () => import('./pages/products/product-form').then(m => m.ProductFormPage),
+            },
         ],
     },
     { path: '**', redirectTo: '' },

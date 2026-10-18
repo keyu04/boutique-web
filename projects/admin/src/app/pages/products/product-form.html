@@ -1,108 +1,166 @@
 <div class="head">
-  <h1>New product</h1>
-  <a class="btn btn-ghost" routerLink="/products">Cancel</a>
+  <h1>{{ isEdit ? 'Edit product' : 'New product' }}</h1>
+  <a class="btn btn-ghost" routerLink="/products">{{ isEdit ? 'Back to products' : 'Cancel' }}</a>
 </div>
 
-<form [formGroup]="form" (ngSubmit)="submit()" novalidate>
-  <section class="card">
-    <h2>Details</h2>
-    <div class="grid">
-      <div class="field wide">
-        <label for="name">Name</label>
-        <input id="name" formControlName="name" [attr.aria-invalid]="!!err('name')" />
-        @if (err('name'); as m) { <p class="err">{{ m }}</p> }
+@if (loadState() === 'loading') {
+  <p class="muted">Loading…</p>
+} @else if (loadState() === 'notfound') {
+  <p>We couldn't find that product. <a routerLink="/products">Back to products</a></p>
+} @else if (loadState() === 'error') {
+  <p class="err">Could not load this product. Please go back and try again.</p>
+} @else {
+  @if (notice(); as n) { <p class="notice" role="status">{{ n }}</p> }
+
+  @if (product(); as p) {
+    <section class="card visibility">
+      <div>
+        <strong>{{ isActive() ? 'Visible in the store' : 'Hidden from the store' }}</strong>
+        <p class="muted">
+          {{ isActive() ? 'Customers can find and buy this product.' : 'Customers cannot see or buy this product.' }}
+          @if (!isActive() && images().length === 0) { Add at least one photo before showing it. }
+        </p>
+        @if (toggleError(); as e) { <p class="err" role="alert">{{ e }}</p> }
       </div>
+      <button type="button" class="btn btn-ghost btn-small" [disabled]="toggling()" (click)="toggleActive()">
+        {{ isActive() ? 'Hide product' : 'Show product' }}
+      </button>
+    </section>
+  }
 
-      <div class="field">
-        <label for="categoryId">Category</label>
-        <select id="categoryId" formControlName="categoryId" [attr.aria-invalid]="!!err('categoryId')">
-          <option [ngValue]="null" disabled>Select category</option>
-          @for (c of categories(); track c.id) { <option [ngValue]="c.id">{{ c.name }}</option> }
-        </select>
-        @if (err('categoryId'); as m) { <p class="err">{{ m }}</p> }
-      </div>
-
-      <div class="field">
-        <label for="tag">Tag (optional)</label>
-        <input id="tag" formControlName="tag" list="tags" [attr.aria-invalid]="!!err('tag')" />
-        <datalist id="tags">
-          <option value="New arrival"></option>
-          <option value="Popular"></option>
-          <option value="Bestseller"></option>
-        </datalist>
-        @if (err('tag'); as m) { <p class="err">{{ m }}</p> }
-      </div>
-
-      <div class="field">
-        <label for="color">Colour</label>
-        <input id="color" formControlName="color" [attr.aria-invalid]="!!err('color')" />
-        @if (err('color'); as m) { <p class="err">{{ m }}</p> }
-      </div>
-
-      <div class="field">
-        <label for="fabric">Fabric</label>
-        <input id="fabric" formControlName="fabric" [attr.aria-invalid]="!!err('fabric')" />
-        @if (err('fabric'); as m) { <p class="err">{{ m }}</p> }
-      </div>
-    </div>
-  </section>
-
-  <section class="card">
-    <h2>Pricing</h2>
-    <div class="grid">
-      <div class="field">
-        <label for="price">Selling price (₹)</label>
-        <input id="price" type="number" step="0.01" inputmode="decimal" formControlName="price" [attr.aria-invalid]="!!err('price')" />
-        @if (err('price'); as m) { <p class="err">{{ m }}</p> }
-      </div>
-
-      <div class="field">
-        <label for="mrp">MRP (₹)</label>
-        <input id="mrp" type="number" step="0.01" inputmode="decimal" formControlName="mrp" [attr.aria-invalid]="!!err('mrp') || mrpTooLow()" />
-        @if (err('mrp'); as m) { <p class="err">{{ m }}</p> }
-        @if (mrpTooLow()) { <p class="err">MRP can't be lower than the selling price.</p> }
-      </div>
-
-      <div class="field">
-        <label for="costPrice">Cost price (₹)</label>
-        <input id="costPrice" type="number" step="0.01" inputmode="decimal" formControlName="costPrice" [attr.aria-invalid]="!!err('costPrice')" />
-        @if (err('costPrice'); as m) { <p class="err">{{ m }}</p> }
-      </div>
-
-      <div class="field">
-        <label for="weightKg">Weight (kg)</label>
-        <input id="weightKg" type="number" step="0.01" inputmode="decimal" formControlName="weightKg" [attr.aria-invalid]="!!err('weightKg')" />
-        @if (err('weightKg'); as m) { <p class="err">{{ m }}</p> }
-      </div>
-    </div>
-
-    @if (margin(); as m) {
-      <p class="margin">
-        Margin: <strong>{{ m.amount | currency: 'INR' : 'symbol' : '1.0-0' }}</strong> ({{ m.percent }}%)
-        @if (m.amount < 0) { <strong> · selling below cost</strong> }
-      </p>
-    }
-  </section>
-
-  <section class="card" formGroupName="stock">
-    <h2>Stock by size</h2>
-    <div class="stockgrid">
-      @for (size of sizes; track size) {
-        <div class="field">
-          <label [for]="'stock-' + size">{{ size }}</label>
-          <input [id]="'stock-' + size" type="number" min="0" inputmode="numeric"
-                 [formControlName]="size" [attr.aria-invalid]="!!err('stock.' + size)" />
-          @if (err('stock.' + size); as m) { <p class="err">{{ m }}</p> }
+  <form [formGroup]="form" (ngSubmit)="submit()" novalidate>
+    <section class="card">
+      <h2>Details</h2>
+      <div class="grid">
+        <div class="field wide">
+          <label for="name">Name</label>
+          <input id="name" formControlName="name" [attr.aria-invalid]="!!err('name')" />
+          @if (err('name'); as m) { <p class="err">{{ m }}</p> }
         </div>
+
+        <div class="field">
+          <label for="categoryId">Category</label>
+          <select id="categoryId" formControlName="categoryId" [attr.aria-invalid]="!!err('categoryId')">
+            <option [ngValue]="null" disabled>Select category</option>
+            @for (c of categories(); track c.id) { <option [ngValue]="c.id">{{ c.name }}</option> }
+          </select>
+          @if (err('categoryId'); as m) { <p class="err">{{ m }}</p> }
+        </div>
+
+        <div class="field">
+          <label for="tag">Tag (optional)</label>
+          <input id="tag" formControlName="tag" list="tags" [attr.aria-invalid]="!!err('tag')" />
+          <datalist id="tags">
+            <option value="New arrival"></option>
+            <option value="Popular"></option>
+            <option value="Bestseller"></option>
+          </datalist>
+          @if (err('tag'); as m) { <p class="err">{{ m }}</p> }
+        </div>
+
+        <div class="field">
+          <label for="color">Colour</label>
+          <input id="color" formControlName="color" [attr.aria-invalid]="!!err('color')" />
+          @if (err('color'); as m) { <p class="err">{{ m }}</p> }
+        </div>
+
+        <div class="field">
+          <label for="fabric">Fabric</label>
+          <input id="fabric" formControlName="fabric" [attr.aria-invalid]="!!err('fabric')" />
+          @if (err('fabric'); as m) { <p class="err">{{ m }}</p> }
+        </div>
+      </div>
+    </section>
+
+    <section class="card">
+      <h2>Pricing</h2>
+      <div class="grid">
+        <div class="field">
+          <label for="price">Selling price (₹)</label>
+          <input id="price" type="number" step="0.01" inputmode="decimal" formControlName="price" [attr.aria-invalid]="!!err('price')" />
+          @if (err('price'); as m) { <p class="err">{{ m }}</p> }
+        </div>
+
+        <div class="field">
+          <label for="mrp">MRP (₹)</label>
+          <input id="mrp" type="number" step="0.01" inputmode="decimal" formControlName="mrp" [attr.aria-invalid]="!!err('mrp') || mrpTooLow()" />
+          @if (err('mrp'); as m) { <p class="err">{{ m }}</p> }
+          @if (mrpTooLow()) { <p class="err">MRP can't be lower than the selling price.</p> }
+        </div>
+
+        <div class="field">
+          <label for="costPrice">Cost price (₹)</label>
+          <input id="costPrice" type="number" step="0.01" inputmode="decimal" formControlName="costPrice" [attr.aria-invalid]="!!err('costPrice')" />
+          @if (err('costPrice'); as m) { <p class="err">{{ m }}</p> }
+        </div>
+
+        <div class="field">
+          <label for="weightKg">Weight (kg)</label>
+          <input id="weightKg" type="number" step="0.01" inputmode="decimal" formControlName="weightKg" [attr.aria-invalid]="!!err('weightKg')" />
+          @if (err('weightKg'); as m) { <p class="err">{{ m }}</p> }
+        </div>
+      </div>
+
+      @if (margin(); as m) {
+        <p class="margin">
+          Margin: <strong>{{ m.amount | currency: 'INR' : 'symbol' : '1.0-0' }}</strong> ({{ m.percent }}%)
+          @if (m.amount < 0) { <strong> · selling below cost</strong> }
+        </p>
       }
+      @if (isEdit) { <p class="muted">Price changes only affect new orders. Existing orders keep the price they were placed at.</p> }
+    </section>
+
+    <section class="card" formGroupName="stock">
+      <h2>Stock by size</h2>
+      <div class="stockgrid">
+        @for (size of sizes; track size) {
+          <div class="field">
+            <label [for]="'stock-' + size">{{ size }}</label>
+            <input [id]="'stock-' + size" type="number" min="0" inputmode="numeric"
+                   [formControlName]="size" [attr.aria-invalid]="!!err('stock.' + size)" />
+            @if (err('stock.' + size); as m) { <p class="err">{{ m }}</p> }
+          </div>
+        }
+      </div>
+      @if (isEdit) { <p class="muted">Saving replaces the current stock numbers, so check them just before you save.</p> }
+    </section>
+
+    @if (!isEdit) {
+      <section class="card">
+        <div class="photohead">
+          <h2>Photos (optional)</h2>
+          <button type="button" class="btn btn-ghost btn-small" [disabled]="pending().length >= maxImages" (click)="picker.click()">Choose photos</button>
+          <input #picker type="file" class="sr" multiple accept="image/jpeg,image/png,image/webp" (change)="addPending($event)" />
+        </div>
+        <p class="muted">JPEG, PNG or WebP, up to 5 MB each, at most {{ maxImages }}. You can reorder them and pick the main photo after saving.</p>
+        @for (p of photoProblems(); track p) { <p class="err">{{ p }}</p> }
+        @if (pending().length > 0) {
+          <ul class="previews">
+            @for (photo of pending(); track photo.url) {
+              <li>
+                <img [src]="photo.url" [alt]="photo.file.name" />
+                <button type="button" class="mini" (click)="removePending(photo)">Remove</button>
+              </li>
+            }
+          </ul>
+        }
+      </section>
+    }
+
+    @if (submitError(); as e) { <p class="err banner" role="alert">{{ e }}</p> }
+
+    <div class="actions">
+      <button type="submit" class="btn" [disabled]="submitting()">
+        @if (isEdit) { {{ submitting() ? 'Saving…' : 'Save changes' }} }
+        @else { {{ submitting() ? 'Creating…' : 'Create product' }} }
+      </button>
+      @if (saved()) { <span class="saved" role="status">Saved ✓</span> }
     </div>
-  </section>
+  </form>
 
-  @if (submitError(); as e) { <p class="err banner" role="alert">{{ e }}</p> }
-
-  <div class="actions">
-    <button type="submit" class="btn" [disabled]="submitting()">
-      {{ submitting() ? 'Creating…' : 'Create product' }}
-    </button>
-  </div>
-</form>
+  @if (product(); as p) {
+    <section class="card photos">
+      <app-image-manager [productId]="p.id" [images]="images()" (changed)="reloadImages()" />
+    </section>
+  }
+}
