@@ -17,6 +17,18 @@ export const routes: Routes = [
                 pathMatch: 'full',
                 loadComponent: () => import('../app/pages/dashboard/dashboard').then(m => m.DashboardPage),
             },
+            {
+                path: 'products',
+                canActivate: [authGuard],
+                data: { roles: ['Admin'] },
+                loadComponent: () => import('./pages/products/product-list').then(m => m.ProductListPage),
+            },
+            {
+                path: 'products/new',
+                canActivate: [authGuard],
+                data: { roles: ['Admin'] },
+                loadComponent: () => import('./pages/products/product-form').then(m => m.ProductFormPage),
+            },
             // products, orders and reports come next
         ],
     },

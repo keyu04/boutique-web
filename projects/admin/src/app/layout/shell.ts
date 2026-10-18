@@ -11,6 +11,9 @@ import { AuthService } from '../core/auth.service';
       <a class="brand" routerLink="/">{{ brand.name }} <small>Admin</small></a>
       <nav aria-label="Main">
         <a routerLink="/" routerLinkActive="active" [routerLinkActiveOptions]="{ exact: true }">Dashboard</a>
+        @if (auth.isAdmin()) {
+        <a routerLink="/products" routerLinkActive="active">Products</a>
+        }
       </nav>
       <div class="who">
         <span>{{ auth.displayName() }} · {{ auth.roles().join(', ') }}</span>
