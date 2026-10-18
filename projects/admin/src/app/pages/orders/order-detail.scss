@@ -1,0 +1,44 @@
+:host { display: block; }
+.head { margin-bottom: 24px; }
+.back { display: inline-block; margin-bottom: 8px; color: var(--muted); font-size: 0.9rem; }
+h1 { margin: 0 0 8px; font-family: var(--font-display); font-weight: 500; font-size: 2.2rem; }
+h2 { margin: 0 0 16px; font-family: var(--font-display); font-weight: 500; font-size: 1.3rem; }
+.meta { display: flex; align-items: center; gap: 12px; margin: 0; color: var(--muted); }
+.muted { color: var(--muted); }
+.err { margin: 12px 0 0; font-weight: 600; }
+
+.layout { display: grid; grid-template-columns: minmax(0, 1fr) 340px; gap: 24px; align-items: start; }
+.card { background: #fff; border-radius: 12px; padding: 24px; margin-bottom: 24px; }
+.side .card:last-child, .main .card:last-child { margin-bottom: 0; }
+
+.tablewrap { overflow-x: auto; }
+table { width: 100%; border-collapse: collapse; }
+th, td { padding: 10px 12px; text-align: left; border-bottom: 1px solid var(--blush); }
+th { font-size: 0.75rem; text-transform: uppercase; letter-spacing: 0.12em; color: var(--muted); font-weight: 600; }
+.num { text-align: right; white-space: nowrap; }
+
+.totals { margin: 16px 0 0 auto; max-width: 280px; }
+.totals div { display: flex; justify-content: space-between; padding: 4px 0; }
+.totals dt, .totals dd { margin: 0; }
+.totals .grand { margin-top: 6px; padding-top: 10px; border-top: 1px solid var(--blush); font-weight: 700; font-size: 1.1rem; }
+
+.history { list-style: none; margin: 0; padding: 0; }
+.history li { display: flex; flex-direction: column; gap: 2px; padding: 10px 0 10px 16px; border-left: 2px solid var(--blush); }
+.history .note { font-style: italic; }
+
+.actions { display: flex; flex-direction: column; gap: 10px; }
+address { font-style: normal; line-height: 1.5; }
+.card p { margin: 0 0 6px; }
+.tel { color: var(--burgundy); }
+.facts div { display: flex; justify-content: space-between; gap: 12px; padding: 4px 0; }
+.facts dt, .facts dd { margin: 0; }
+.facts dt { color: var(--muted); }
+
+.btn:focus-visible, .back:focus-visible, .tel:focus-visible { outline: 3px solid var(--burgundy); outline-offset: 2px; }
+
+form .field { margin-bottom: 12px; }
+form .field label { display: block; margin-bottom: 6px; font-size: 0.8rem; text-transform: uppercase; letter-spacing: 0.12em; }
+form input[type='text'] { width: 100%; box-sizing: border-box; height: 44px; padding: 0 16px; border: 1px solid var(--burgundy); border-radius: 999px; background: #fff; color: var(--burgundy); font: inherit; }
+form input:focus-visible { outline: 3px solid var(--burgundy); outline-offset: 2px; }
+
+@media (max-width: 900px) { .layout { grid-template-columns: 1fr; } }

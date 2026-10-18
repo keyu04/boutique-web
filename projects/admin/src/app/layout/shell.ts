@@ -10,9 +10,11 @@ import { AuthService } from '../core/auth.service';
     <header class="bar">
       <a class="brand" routerLink="/">{{ brand.name }} <small>Admin</small></a>
       <nav aria-label="Main">
-        <a routerLink="/" routerLinkActive="active" [routerLinkActiveOptions]="{ exact: true }">Dashboard</a>
+       <a routerLink="/" routerLinkActive="active" [routerLinkActiveOptions]="{ exact: true }">Dashboard</a>
+        <a routerLink="/orders" routerLinkActive="active">Orders</a>
         @if (auth.isAdmin()) {
-        <a routerLink="/products" routerLinkActive="active">Products</a>
+          <a routerLink="/products" routerLinkActive="active">Products</a>
+          <a routerLink="/reports" routerLinkActive="active">Reports</a>
         }
       </nav>
       <div class="who">

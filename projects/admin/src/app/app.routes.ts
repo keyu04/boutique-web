@@ -35,6 +35,20 @@ export const routes: Routes = [
                 data: { roles: ['Admin'] },
                 loadComponent: () => import('./pages/products/product-form').then(m => m.ProductFormPage),
             },
+            {
+                path: 'orders',
+                loadComponent: () => import('./pages/orders/order-list').then(m => m.OrderListPage),
+            },
+            {
+                path: 'orders/:id',
+                loadComponent: () => import('./pages/orders/order-detail').then(m => m.OrderDetailPage),
+            },
+            {
+                path: 'reports',
+                canActivate: [authGuard],
+                data: { roles: ['Admin'] },
+                loadComponent: () => import('./pages/reports/reports').then(m => m.ReportsPage),
+            },
         ],
     },
     { path: '**', redirectTo: '' },

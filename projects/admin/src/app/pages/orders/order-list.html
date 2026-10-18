@@ -1,0 +1,78 @@
+<div class="head">
+  <h1>Orders</h1>
+</div>
+
+<div class="tools">
+  <input #search type="search" class="search" placeholder="Search orders" aria-label="Search orders"
+         [value]="searchText()" (input)="searchText.set(search.value)" />
+
+  <div class="field">
+    <label for="status">Status</label>
+    <select #statusSel id="status" [value]="status()" (change)="setStatus(statusSel.value)">
+      <option value="">All</option>
+      @for (s of statuses; track s) { <option [value]="s">{{ s }}</option> }
+    </select>
+  </div>
+  <div class="field">
+    <label for="from">From</label>
+    <input #fromInput id="from" type="date" [value]="from()" (change)="setFrom(fromInput.value)" />
+  </div>
+  <div class="field">
+    <label for="to">To</label>
+    <input #toInput id="to" type="date" [value]="to()" (change)="setTo(toInput.value)" />
+  </div>
+  @if (hasFilters()) {
+    <button type="button" class="btn btn-ghost btn-small" (click)="clearFilters()">Clear filters</button>
+  }
+</div>
+
+@if (error(); as e) {
+  <div class="notice" role="alert">
+    <p>{{ e }}</p>
+    <button type="button" class="btn btn-ghost btn-small" (click)="retry()">Try again</button>
+  </div>
+}
+
+@if (data(); as d) {
+  @if (d.items.length === 0) {
+    <p class="empty">@if (hasFilters()) { No orders match these filters. } @else { No orders yet. }</p>
+  } @else {
+    <div class="tablewrap" [class.loading]="loading()" [attr.aria-busy]="loading()">
+      <table>
+        <thead>
+          <tr>
+            <th scope="col">Order</th>
+            <th scope="col">Customer</th>
+            <th scope="col" class="num">Items</th>
+            <th scope="col" class="num">Total</th>
+            <th scope="col">Payment</th>
+            <th scope="col">Status</th>
+          </tr>
+        </thead>
+        <tbody>
+          @for (o of d.items; track o.id) {
+            <tr>
+              <td>
+                <a class="name" [routerLink]="['/orders', o.id]"><strong>{{ o.orderNumber }}</strong></a><br />
+                <small>{{ o.createdAt | date: 'd MMM y, h:mm a' }}</small>
+              </td>
+              <td>{{ o.customerName }}<br /><small>{{ o.city }}</small></td>
+              <td class="num">{{ o.itemCount }}</td>
+              <td class="num">{{ o.total | currency: 'INR' : 'symbol' : '1.0-0' }}</td>
+              <td>{{ paymentLabel(o.paymentMethod) }}<br /><small>{{ o.paymentStatus }}</small></td>
+              <td><app-status-badge [status]="o.status" /></td>
+            </tr>
+          }
+        </tbody>
+      </table>
+    </div>
+  }
+
+  <nav class="pager" aria-label="Pagination">
+    <button type="button" class="btn btn-ghost btn-small" [disabled]="page() <= 1 || loading()" (click)="go(-1)">Previous</button>
+    <span>Page {{ page() }}@if (total() !== null) { · {{ total() }} orders }</span>
+    <button type="button" class="btn btn-ghost btn-small" [disabled]="!hasNext() || loading()" (click)="go(1)">Next</button>
+  </nav>
+} @else if (loading()) {
+  <p class="empty">Loading…</p>
+}

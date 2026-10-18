@@ -1,0 +1,56 @@
+<div class="head">
+  <h1>Reports</h1>
+</div>
+
+<form class="range" (submit)="apply($event)">
+  <div class="field">
+    <label for="from">From</label>
+    <input #fromInput id="from" type="date" [value]="from()" (input)="from.set(fromInput.value)" />
+  </div>
+  <div class="field">
+    <label for="to">To (included)</label>
+    <input #toInput id="to" type="date" [value]="to()" (input)="to.set(toInput.value)" />
+  </div>
+  <button type="submit" class="btn btn-small" [disabled]="loading()">Apply</button>
+  <div class="presets">
+    <button type="button" class="btn btn-ghost btn-small" [disabled]="loading()" (click)="preset(7)">Last 7 days</button>
+    <button type="button" class="btn btn-ghost btn-small" [disabled]="loading()" (click)="preset(30)">Last 30 days</button>
+    <button type="button" class="btn btn-ghost btn-small" [disabled]="loading()" (click)="preset(90)">Last 90 days</button>
+    <button type="button" class="btn btn-ghost btn-small" [disabled]="loading()" (click)="preset('month')">This month</button>
+  </div>
+</form>
+
+@if (error(); as e) { <p class="err" role="alert">{{ e }}</p> }
+
+@if (data(); as d) {
+  <div class="tiles" [class.loading]="loading()" [attr.aria-busy]="loading()">
+    <div class="tile"><p class="label">Orders</p><p class="value">{{ d.orderCount }}</p></div>
+    <div class="tile"><p class="label">Item revenue</p><p class="value">{{ d.itemRevenue | currency: 'INR' : 'symbol' : '1.0-0' }}</p></div>
+    <div class="tile"><p class="label">Shipping collected</p><p class="value">{{ d.shippingCollected | currency: 'INR' : 'symbol' : '1.0-0' }}</p></div>
+    <div class="tile"><p class="label">Cost of goods</p><p class="value">{{ d.cost | currency: 'INR' : 'symbol' : '1.0-0' }}</p></div>
+    <div class="tile">
+      <p class="label">Margin</p>
+      <p class="value">{{ d.margin | currency: 'INR' : 'symbol' : '1.0-0' }}</p>
+      <p class="sub">{{ d.marginPercent | number: '1.0-1' }}% of item revenue</p>
+    </div>
+  </div>
+  <p class="muted">
+    Revenue, cost and margin count orders that are Confirmed, Packed, Shipped or Delivered.
+    Pending and Cancelled orders are not included. Period: {{ d.from }} to {{ d.to }}.
+  </p>
+
+  <section class="card">
+    <h2>Orders by status</h2>
+    <ul class="bars">
+      @for (r of rows(); track r.status) {
+        <li>
+          <span class="name">{{ r.status }}</span>
+          <span class="track" aria-hidden="true"><span class="fill" [class.dim]="!r.counted" [style.width.%]="r.width"></span></span>
+          <span class="count">{{ r.count }}</span>
+        </li>
+      }
+    </ul>
+  </section>
+} @else if (loading()) {
+  <p class="muted">Loading…</p>
+}
