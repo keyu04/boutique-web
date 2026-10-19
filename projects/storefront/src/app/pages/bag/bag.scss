@@ -34,8 +34,8 @@ h1 { font-family: $display; font-weight: 500; font-size: clamp(2.5rem, 4vw, 3rem
 .line-total { color: #302a28; font-size: 0.95rem; font-weight: 600; }
 .remove { padding: 0; border: 0; background: none; color: $muted; cursor: pointer; font: inherit; font-size: 0.8rem; }
 .remove:hover { color: $burgundy; text-decoration: underline; }
-.continue { display: inline-flex; align-items: center; gap: 10px; margin-top: 18px; color: $burgundy; font-size: 0.9rem; text-decoration: none; }
-.continue:hover { text-decoration: underline; }
+.continue { display: inline-flex; min-height: 44px; align-items: center; gap: 10px; padding: 0 16px; margin-top: 18px; border: 1px solid $line; border-radius: 4px; background: #fffdfa; color: $burgundy; font-size: 0.9rem; text-decoration: none; transition: background-color 150ms ease, border-color 150ms ease; }
+.continue:hover { border-color: $burgundy; background: color-mix(in srgb, $blush 30%, white); }
 
 .summary { position: sticky; top: 24px; padding: 24px; border-radius: 6px; background: color-mix(in srgb, $blush 48%, white); }
 .summary h2 { margin: 0 0 18px; color: #302a28; font-family: $display; font-size: 1.6rem; font-weight: 500; }

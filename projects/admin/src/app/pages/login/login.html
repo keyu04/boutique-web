@@ -1,20 +1,38 @@
 <main class="wrap">
-  <form class="card" [formGroup]="form" (ngSubmit)="submit()" novalidate>
-    <p class="mark">{{ brand.name }}</p>
+  <form class="login" [formGroup]="form" (ngSubmit)="submit()" novalidate>
+    <div class="brand">
+      <img src="/assets/sahjish-monogram.png" alt="" class="brand-mark" />
+      <span class="brand-name">{{ brand.name }}</span>
+    </div>
+    <span class="divider" aria-hidden="true"></span>
     <h1>Sign in</h1>
-    <p class="sub">Store admin</p>
+    <p class="sub">Welcome back to your store admin.</p>
 
     <div class="field">
       <label for="email">Email</label>
       <input id="email" type="email" formControlName="email" autocomplete="username"
+             placeholder="you@example.com"
              [attr.aria-invalid]="bad('email')" />
       @if (bad('email')) { <p class="err">Enter a valid email address.</p> }
     </div>
 
     <div class="field">
       <label for="password">Password</label>
-      <input id="password" type="password" formControlName="password"
-             autocomplete="current-password" [attr.aria-invalid]="bad('password')" />
+      <div class="password-field">
+        <input id="password" [type]="showPassword() ? 'text' : 'password'" formControlName="password"
+               autocomplete="current-password" placeholder="Enter your password"
+               [attr.aria-invalid]="bad('password')" />
+        <button type="button" class="password-toggle"
+                [attr.aria-label]="showPassword() ? 'Hide password' : 'Show password'"
+                [attr.aria-pressed]="showPassword()"
+                (click)="showPassword.update(value => !value)">
+          @if (showPassword()) {
+            <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M3 3l18 18M10.6 10.6a2 2 0 0 0 2.8 2.8"/><path d="M9.9 5.2A10.8 10.8 0 0 1 12 5c5 0 8.5 4.5 9.5 7-.4 1.1-1.2 2.3-2.3 3.4M6.2 6.2C4.3 7.5 3 9.4 2.5 12c.8 2.4 4.3 7 9.5 7 1 0 2-.2 2.9-.5"/></svg>
+          } @else {
+            <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M2.5 12S6 5 12 5s9.5 7 9.5 7-3.5 7-9.5 7-9.5-7-9.5-7Z"/><circle cx="12" cy="12" r="2.5"/></svg>
+          }
+        </button>
+      </div>
       @if (bad('password')) { <p class="err">Enter your password.</p> }
     </div>
 
@@ -23,5 +41,6 @@
     <button type="submit" class="btn" [disabled]="submitting()">
       {{ submitting() ? 'Signing in…' : 'Sign in' }}
     </button>
+    <p class="notice">For authorized store administrators only.</p>
   </form>
 </main>

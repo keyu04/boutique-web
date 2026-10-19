@@ -3,7 +3,7 @@ import { HttpErrorResponse } from '@angular/common/http';
 import { Component, computed, inject, signal } from '@angular/core';
 import { takeUntilDestroyed, toObservable } from '@angular/core/rxjs-interop';
 import { Title } from '@angular/platform-browser';
-import { RouterLink } from '@angular/router';
+import { RouterLink, ActivatedRoute } from '@angular/router';
 import { BRAND, Page, apiMessage } from '@shared';
 import { EMPTY, catchError, debounceTime, distinctUntilChanged, map, switchMap, tap } from 'rxjs';
 import { AdminOrdersApi } from '../../core/admin-orders.api';
@@ -25,7 +25,12 @@ export class OrderListPage {
 
   readonly searchText = signal('');
   readonly q = signal('');
-  readonly status = signal('');
+  readonly status = signal(
+    (() => {
+      const s = inject(ActivatedRoute).snapshot.queryParamMap.get('status');
+      return s && this.statuses.includes(s) ? s : '';
+    })(),
+  );
   readonly from = signal('');
   readonly to = signal('');
   readonly page = signal(1);

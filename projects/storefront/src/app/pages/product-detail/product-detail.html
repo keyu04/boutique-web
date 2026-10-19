@@ -16,32 +16,46 @@
   </div>
   } @else if (product(); as p) {
   <nav class="crumbs" aria-label="Breadcrumb">
-    <a routerLink="/">Home</a> / <span>{{ p.category }}</span> / <span>{{ p.name }}</span>
+    <a routerLink="/">Home</a>
+    <span aria-hidden="true">›</span>
+    <span>{{ p.category }}</span>
+    <span aria-hidden="true">›</span>
+    <span aria-current="page">{{ p.name }}</span>
   </nav>
 
   <div class="layout">
-    <div class="gallery">
-      @if (activeImage(); as img) {
-      <img class="main" [src]="img.url" [alt]="img.altText ?? p.name" />
-      } @else {
-      <div class="main placeholder">No image yet</div>
-      }
-
+    <section class="gallery" [class.has-thumbnails]="p.images.length > 1" aria-label="Product images">
       @if (p.images.length > 1) {
-      <div class="thumbs">
+      <div class="thumbs" aria-label="Choose product image">
         @for (img of p.images; track img.id; let i = $index) {
         <button type="button" class="thumb" [class.active]="i === imageIndex()" (click)="imageIndex.set(i)"
-          [attr.aria-label]="'Show image ' + (i + 1)">
+          [attr.aria-label]="'Show image ' + (i + 1)" [attr.aria-pressed]="i === imageIndex()">
           <img [src]="img.url" alt="" />
         </button>
         }
       </div>
       }
-    </div>
+
+      <div class="image-column">
+        @if (activeImage(); as img) {
+        <img class="main" [src]="img.url" [alt]="img.altText ?? p.name" />
+        } @else {
+        <div class="main placeholder">No image yet</div>
+        }
+        <div class="image-caption">
+          <span>The full look</span>
+          @if (p.images.length > 0) {
+          <span>{{ (imageIndex() + 1).toString().padStart(2, '0') }} / {{ p.images.length.toString().padStart(2, '0') }}</span>
+          }
+        </div>
+      </div>
+    </section>
 
     <section class="info">
       @if (p.tag) { <span class="tag">{{ p.tag }}</span> }
       <h1>{{ p.name }}</h1>
+
+      @if (p.description) { <p class="desc">{{ p.description }}</p> }
 
       <p class="price">
         <strong>{{ p.price | currency: 'INR' : 'symbol' : '1.0-0' }}</strong>
@@ -51,8 +65,6 @@
         }
       </p>
       <p class="tax">Inclusive of all taxes</p>
-
-      @if (p.description) { <p class="desc">{{ p.description }}</p> }
 
       <dl class="meta">
         <div>
@@ -65,7 +77,7 @@
         </div>
       </dl>
 
-      <h2 class="label">Size</h2>
+      <h2 class="label">Select size</h2>
       <div class="sizes" role="radiogroup" aria-label="Choose a size">
         @for (s of p.sizes; track s.variantId) {
         <button type="button" role="radio" class="size" [class.selected]="s.variantId === selectedVariantId()"
@@ -77,14 +89,23 @@
       </div>
 
       @if (selectedSize(); as sz) {
-      @if (sz.stockQuantity <= 3) { <p class="hint">Only {{ sz.stockQuantity }} left in {{ sz.size }}</p>
-        }
-        }
+      <p class="hint">
+        @if (sz.stockQuantity > 0) { Selected: {{ sz.size }} · }
+        @if (sz.stockQuantity === 0) { {{ sz.size }} is unavailable }
+        @else if (sz.stockQuantity <= 3) { Only {{ sz.stockQuantity }} left }
+      </p>
+      }
 
-        <button type="button" class="btn add" (click)="addToBag(p)">Add to bag</button>
+      <button type="button" class="btn add" (click)="addToBag(p)">
+        <svg viewBox="0 0 24 24" aria-hidden="true">
+          <path d="M5 8h14l1 13H4L5 8Z" />
+          <path d="M9 8V6a3 3 0 0 1 6 0v2" />
+        </svg>
+        <span>Add to Bag</span>
+      </button>
 
-        @if (message(); as m) { <p class="msg" role="alert">{{ m }}</p> }
-        @if (added()) { <p class="ok" role="status">Added to your bag.</p> }
+      @if (message(); as m) { <p class="msg" role="alert">{{ m }}</p> }
+      @if (added()) { <p class="ok" role="status">Added to your bag.</p> }
     </section>
   </div>
   }

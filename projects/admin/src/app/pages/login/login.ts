@@ -25,6 +25,7 @@ export class LoginPage {
   });
   readonly submitting = signal(false);
   readonly error = signal<string | null>(null);
+  readonly showPassword = signal(false);
 
   constructor() {
     inject(Title).setTitle(`Sign in | ${BRAND.name} Admin`);

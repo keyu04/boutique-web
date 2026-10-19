@@ -74,7 +74,8 @@ h2 { font-family: $display; font-size: 1.5rem; font-weight: 500; line-height: 1.
 .place:disabled { opacity: 0.65; cursor: wait; }
 .place svg { width: 15px; height: 15px; fill: none; stroke: currentColor; stroke-width: 1.4; stroke-linecap: round; stroke-linejoin: round; }
 .review-hint { margin: 10px 0 0; color: $muted; font-size: 0.82rem; text-align: center; }
-.back { display: block; margin: 15px auto 0; color: $burgundy; font-size: 0.9rem; text-align: center; }
+.back { display: flex; min-height: 44px; align-items: center; justify-content: center; gap: 9px; padding: 0 16px; margin-top: 12px; border: 1px solid $line; border-radius: 4px; background: #fffdfa; color: $burgundy; font-size: 0.9rem; text-decoration: none; transition: background-color 150ms ease, border-color 150ms ease; }
+.back:hover { border-color: $burgundy; background: color-mix(in srgb, var(--blush, #ecd5d3) 30%, white); }
 
 app-site-footer { margin-top: 42px; }
 
