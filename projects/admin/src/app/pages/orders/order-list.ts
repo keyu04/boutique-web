@@ -3,7 +3,7 @@ import { HttpErrorResponse } from '@angular/common/http';
 import { Component, computed, inject, signal } from '@angular/core';
 import { takeUntilDestroyed, toObservable } from '@angular/core/rxjs-interop';
 import { Title } from '@angular/platform-browser';
-import { RouterLink, ActivatedRoute } from '@angular/router';
+import { Router, RouterLink, ActivatedRoute } from '@angular/router';
 import { BRAND, Page, apiMessage } from '@shared';
 import { EMPTY, catchError, debounceTime, distinctUntilChanged, map, switchMap, tap } from 'rxjs';
 import { AdminOrdersApi } from '../../core/admin-orders.api';
@@ -20,6 +20,8 @@ const PAGE_SIZE = 20;
 })
 export class OrderListPage {
   private readonly api = inject(AdminOrdersApi);
+  private readonly router = inject(Router);
+  readonly brand = BRAND;
 
   readonly statuses = ['Pending', 'Confirmed', 'Packed', 'Shipped', 'Delivered', 'Cancelled'];
 
@@ -40,6 +42,10 @@ export class OrderListPage {
   readonly error = signal<string | null>(null);
 
   readonly hasFilters = computed(() => !!(this.q() || this.status() || this.from() || this.to()));
+  readonly statusTitle = computed(() => this.status() ? `${this.status()} orders` : 'All orders');
+  readonly pendingPayments = computed(() =>
+    this.data()?.items.filter(order => order.paymentStatus.toLowerCase() === 'pending').length ?? 0,
+  );
 
   /** The orders API may not send a total, so treat it as optional. */
   readonly total = computed(() => {
@@ -52,6 +58,23 @@ export class OrderListPage {
     if (!d) return false;
     const total = this.total();
     return total !== null ? this.page() * PAGE_SIZE < total : d.items.length === PAGE_SIZE;
+  });
+
+  readonly showingFrom = computed(() => {
+    const items = this.data()?.items ?? [];
+    return items.length ? (this.page() - 1) * PAGE_SIZE + 1 : 0;
+  });
+
+  readonly showingTo = computed(() => {
+    const items = this.data()?.items ?? [];
+    const pageEnd = (this.page() - 1) * PAGE_SIZE + items.length;
+    const total = this.total();
+    return total === null ? pageEnd : Math.min(pageEnd, total);
+  });
+
+  readonly pageCount = computed(() => {
+    const total = this.total();
+    return total === null ? (this.hasNext() ? null : this.page()) : Math.max(1, Math.ceil(total / PAGE_SIZE));
   });
 
   constructor() {
@@ -105,6 +128,11 @@ export class OrderListPage {
 
   go(delta: number): void {
     this.page.update(p => Math.max(p + delta, 1));
+  }
+
+  openOrderRow(event: Event, id: number): void {
+    if (event.target instanceof Element && event.target.closest('a')) return;
+    void this.router.navigate(['/orders', id]);
   }
 
   retry(): void {

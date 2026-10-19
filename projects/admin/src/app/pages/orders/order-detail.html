@@ -1,169 +1,185 @@
-<div class="head">
-    <div>
-        <a class="back" routerLink="/orders">← All orders</a>
-        @if (order(); as o) {
-        <h1>{{ o.orderNumber }}</h1>
-        <p class="meta">
-            <app-status-badge [status]="o.status" />
-            Placed {{ o.createdAt | date: 'd MMM y, h:mm a' }}
-        </p>
-        } @else {
-        <h1>Order</h1>
-        }
-    </div>
-</div>
-
 @if (state() === 'loading') {
-<p class="muted">Loading…</p>
+    <p class="state-message">Loading order…</p>
 } @else if (state() === 'notfound') {
-<p>We couldn't find that order. <a routerLink="/orders">Back to orders</a></p>
+    <p class="state-message">We couldn't find that order. <a routerLink="/orders">Back to orders</a></p>
 } @else if (state() === 'error') {
-<p class="err">Could not load this order. Please go back and try again.</p>
+    <p class="state-message error" role="alert">Could not load this order. Please go back and try again.</p>
 } @else if (order(); as o) {
-<div class="layout">
-    <div class="main">
-        <section class="card">
-            <h2>Items</h2>
-            <div class="tablewrap">
-                <table>
-                    <thead>
-                        <tr>
-                            <th scope="col">Product</th>
-                            <th scope="col">Size</th>
-                            <th scope="col" class="num">Qty</th>
-                            <th scope="col" class="num">Price</th>
-                            @if (costTotal() !== null) { <th scope="col" class="num">Cost</th> }
-                            <th scope="col" class="num">Total</th>
-                        </tr>
-                    </thead>
-                    <tbody>
-                        @for (i of o.items; track i.variantId) {
-                        <tr>
-                            <td>{{ i.productName }}</td>
-                            <td>{{ i.size }}</td>
-                            <td class="num">{{ i.quantity }}</td>
-                            <td class="num">{{ i.unitPrice | currency: 'INR' : 'symbol' : '1.0-0' }}</td>
-                            @if (costTotal() !== null) {
-                            <td class="num">{{ i.unitCost | currency: 'INR' : 'symbol' : '1.0-0' }}</td>
+    <a class="back" routerLink="/orders"><span aria-hidden="true">←</span> All orders</a>
+
+    <header class="order-head">
+        <div class="order-heading">
+            <p class="eyebrow">Order details</p>
+            <div class="title-row">
+                <h1>{{ o.orderNumber }}</h1>
+                <app-status-badge [status]="o.status" />
+            </div>
+            <p class="placed">Placed {{ o.createdAt | date: 'd MMM y, h:mm a' }}</p>
+        </div>
+        <div class="order-total">
+            <span>Total</span>
+            <strong>{{ o.total | currency: 'INR' : 'symbol' : '1.0-0' }}</strong>
+        </div>
+    </header>
+
+    <div class="layout">
+        <div class="main">
+            <section class="card items-card" aria-labelledby="items-title">
+                <header class="card-heading">
+                    <h2 id="items-title">Items</h2>
+                    <span>{{ o.items.length }} {{ o.items.length === 1 ? 'item' : 'items' }}</span>
+                </header>
+                <div class="tablewrap">
+                    <table>
+                        <thead>
+                            <tr>
+                                <th scope="col">Product</th>
+                                <th scope="col">Size</th>
+                                <th scope="col" class="num">Qty</th>
+                                <th scope="col" class="num">Price</th>
+                                @if (costTotal() !== null) { <th scope="col" class="num">Cost</th> }
+                                <th scope="col" class="num">Total</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            @for (i of o.items; track i.variantId) {
+                                <tr>
+                                    <td class="product-name">{{ i.productName }}</td>
+                                    <td>{{ i.size }}</td>
+                                    <td class="num">{{ i.quantity }}</td>
+                                    <td class="num">{{ i.unitPrice | currency: 'INR' : 'symbol' : '1.0-0' }}</td>
+                                    @if (costTotal() !== null) {
+                                        <td class="num">{{ i.unitCost | currency: 'INR' : 'symbol' : '1.0-0' }}</td>
+                                    }
+                                    <td class="num line-total">{{ i.lineTotal | currency: 'INR' : 'symbol' : '1.0-0' }}</td>
+                                </tr>
                             }
-                            <td class="num">{{ i.lineTotal | currency: 'INR' : 'symbol' : '1.0-0' }}</td>
-                        </tr>
+                        </tbody>
+                    </table>
+                </div>
+
+                <dl class="totals">
+                    <div>
+                        <dt>Subtotal</dt>
+                        <dd>{{ o.subtotal | currency: 'INR' : 'symbol' : '1.0-0' }}</dd>
+                    </div>
+                    <div>
+                        <dt>Shipping</dt>
+                        <dd>{{ o.shippingCharge | currency: 'INR' : 'symbol' : '1.0-0' }}</dd>
+                    </div>
+                    <div class="grand">
+                        <dt>Total</dt>
+                        <dd>{{ o.total | currency: 'INR' : 'symbol' : '1.0-0' }}</dd>
+                    </div>
+                    @if (margin() !== null) {
+                        <div class="margin-row">
+                            <dt>Margin on items</dt>
+                            <dd>{{ margin() | currency: 'INR' : 'symbol' : '1.0-0' }}</dd>
+                        </div>
+                    }
+                </dl>
+            </section>
+
+            <section class="card history-card" aria-labelledby="history-title">
+                <h2 id="history-title">History</h2>
+                @if (o.history.length > 0) {
+                    <ol class="history">
+                        @for (h of o.history; track h.changedAt) {
+                            <li>
+                                <span class="history-icon" aria-hidden="true">
+                                    <svg viewBox="0 0 20 20"><rect x="4" y="3.5" width="12" height="14" rx="2" /><path d="M7 3.5h6M7 8h6M7 11h6M7 14h3" /></svg>
+                                </span>
+                                <div class="history-copy">
+                                    <strong>{{ h.from === h.to ? h.to : h.from + ' → ' + h.to }}</strong>
+                                    @if (h.note) { <span>{{ h.note }}</span> } @else { <span>{{ h.from === h.to ? 'Order created' : 'Status updated' }}</span> }
+                                    <small>{{ h.changedBy }}</small>
+                                </div>
+                                <time>{{ h.changedAt | date: 'd MMM y, h:mm a' }}</time>
+                            </li>
                         }
-                    </tbody>
-                </table>
-            </div>
-
-            <dl class="totals">
-                <div>
-                    <dt>Subtotal</dt>
-                    <dd>{{ o.subtotal | currency: 'INR' : 'symbol' : '1.0-0' }}</dd>
-                </div>
-                <div>
-                    <dt>Shipping</dt>
-                    <dd>{{ o.shippingCharge | currency: 'INR' : 'symbol' : '1.0-0' }}</dd>
-                </div>
-                <div class="grand">
-                    <dt>Total</dt>
-                    <dd>{{ o.total | currency: 'INR' : 'symbol' : '1.0-0' }}</dd>
-                </div>
-                @if (margin() !== null) {
-                <div class="muted">
-                    <dt>Margin on items</dt>
-                    <dd>{{ margin() | currency: 'INR' : 'symbol' : '1.0-0' }}</dd>
-                </div>
+                    </ol>
+                } @else {
+                    <p class="muted">No history is available for this order.</p>
                 }
-            </dl>
-        </section>
+            </section>
+        </div>
 
-        <section class="card">
-            <h2>History</h2>
-            <ol class="history">
-                @for (h of o.history; track h.changedAt) {
-                <li>
-                    <strong>{{ h.from === h.to ? h.to : h.from + ' → ' + h.to }}</strong>
-                    <span class="muted">{{ h.changedAt | date: 'd MMM y, h:mm a' }} · {{ h.changedBy }}</span>
-                    @if (h.note) { <span class="note">{{ h.note }}</span> }
-                </li>
+        <aside class="side">
+            <section class="card next-card" aria-labelledby="next-title">
+                <h2 id="next-title">Next step</h2>
+                @if (o.allowedNextStatuses.length === 0) {
+                    <p class="muted">No further changes are possible for this order.</p>
+                } @else {
+                    <div class="actions">
+                        @for (s of o.allowedNextStatuses; track s) {
+                            <button type="button" class="action-button" [class.cancel-button]="s === 'Cancelled'" [disabled]="updating()"
+                                (click)="changeStatus(s)">
+                                {{ updating() ? 'Updating…' : actionLabel(s) }}
+                            </button>
+                        }
+                    </div>
                 }
-            </ol>
-        </section>
-    </div>
+                @if (actionError(); as e) { <p class="err" role="alert">{{ e }}</p> }
+            </section>
 
-    <aside class="side">
-        <section class="card">
-            <h2>Next step</h2>
-            @if (o.allowedNextStatuses.length === 0) {
-            <p class="muted">No further changes are possible for this order.</p>
-            } @else {
-            <div class="actions">
-                @for (s of o.allowedNextStatuses; track s) {
-                <button type="button" class="btn" [class.btn-ghost]="s === 'Cancelled'" [disabled]="updating()"
-                    (click)="changeStatus(s)">
-                    {{ actionLabel(s) }}
-                </button>
-                }
-            </div>
+            @if (canEditTracking()) {
+                <section class="card tracking-card" aria-labelledby="tracking-title">
+                    <h2 id="tracking-title">Courier and tracking</h2>
+                    <form (submit)="saveTracking($event)" novalidate>
+                        <div class="field">
+                            <label for="courier">Courier</label>
+                            <input #courierInput id="courier" type="text" maxlength="100" autocomplete="off" [value]="courier()"
+                                (input)="courier.set(courierInput.value); trackingSaved.set(false)" />
+                        </div>
+                        <div class="field">
+                            <label for="tracking">Tracking number</label>
+                            <input #trackingInput id="tracking" type="text" maxlength="100" autocomplete="off"
+                                [value]="tracking()" (input)="tracking.set(trackingInput.value); trackingSaved.set(false)" />
+                        </div>
+                        <button type="submit" class="action-button" [disabled]="savingTracking()">
+                            {{ savingTracking() ? 'Saving…' : 'Save tracking' }}
+                        </button>
+                        @if (trackingError(); as e) { <p class="err" role="alert">{{ e }}</p> }
+                        @if (trackingSaved()) { <p class="saved" role="status">Tracking details saved.</p> }
+                    </form>
+                </section>
             }
-            @if (actionError(); as e) { <p class="err" role="alert">{{ e }}</p> }
-        </section>
 
-        @if (canEditTracking()) {
-        <section class="card">
-            <h2>Courier and tracking</h2>
-            <form (submit)="saveTracking($event)" novalidate>
-                <div class="field">
-                    <label for="courier">Courier</label>
-                    <input #courierInput id="courier" type="text" maxlength="100" autocomplete="off" [value]="courier()"
-                        (input)="courier.set(courierInput.value); trackingSaved.set(false)" />
+            <section class="card customer-card" aria-labelledby="customer-title">
+                <h2 id="customer-title">Customer</h2>
+                <p class="customer-name">{{ o.customerName }}</p>
+                <a class="contact" [href]="'tel:' + o.phone">
+                    <svg viewBox="0 0 18 18" aria-hidden="true"><path d="M5 2.5h2l1 3-1.4 1.4a11 11 0 0 0 4.5 4.5L12.5 10l3 1v2c0 1.1-.9 2-2 2A11 11 0 0 1 3 4.5c0-1.1.9-2 2-2Z" /></svg>
+                    {{ o.phone }}
+                </a>
+                <div class="address">
+                    <svg viewBox="0 0 18 18" aria-hidden="true"><path d="M14.5 7.5c0 4-5.5 8-5.5 8s-5.5-4-5.5-8a5.5 5.5 0 1 1 11 0Z" /><circle cx="9" cy="7.5" r="1.7" /></svg>
+                    <address>{{ o.addressLine }}<br />{{ o.city }}, {{ o.state }} {{ o.pincode }}</address>
                 </div>
-                <div class="field">
-                    <label for="tracking">Tracking number</label>
-                    <input #trackingInput id="tracking" type="text" maxlength="100" autocomplete="off"
-                        [value]="tracking()" (input)="tracking.set(trackingInput.value); trackingSaved.set(false)" />
-                </div>
-                <button type="submit" class="btn btn-small" [disabled]="savingTracking()">
-                    {{ savingTracking() ? 'Saving…' : 'Save tracking' }}
-                </button>
-                @if (trackingError(); as e) { <p class="err" role="alert">{{ e }}</p> }
-                @if (trackingSaved()) { <p class="muted" role="status">Saved.</p> }
-            </form>
-        </section>
-        }
-        <section class="card">
-            <h2>Customer</h2>
-            <p><strong>{{ o.customerName }}</strong></p>
-            <p><a class="tel" [href]="'tel:' + o.phone">{{ o.phone }}</a></p>
-            <address>
-                {{ o.addressLine }}<br />
-                {{ o.city }}, {{ o.state }} {{ o.pincode }}
-            </address>
-        </section>
+            </section>
 
-        <section class="card">
-            <h2>Payment and delivery</h2>
-            <dl class="facts">
-                <div>
-                    <dt>Method</dt>
-                    <dd>{{ paymentLabel(o.paymentMethod) }}</dd>
-                </div>
-                <div>
-                    <dt>Payment</dt>
-                    <dd>{{ o.paymentStatus }}</dd>
-                </div>
-                @if (o.paymentReference) { <div>
-                    <dt>Reference</dt>
-                    <dd>{{ o.paymentReference }}</dd>
-                </div> }
-                @if (o.courierName) { <div>
-                    <dt>Courier</dt>
-                    <dd>{{ o.courierName }}</dd>
-                </div> }
-                @if (o.trackingNumber) { <div>
-                    <dt>Tracking</dt>
-                    <dd>{{ o.trackingNumber }}</dd>
-                </div> }
-            </dl>
-        </section>
-    </aside>
-</div>
+            <section class="card payment-card" aria-labelledby="payment-title">
+                <h2 id="payment-title">Payment and delivery</h2>
+                <dl class="facts">
+                    <div>
+                        <dt>Method</dt>
+                        <dd>{{ paymentLabel(o.paymentMethod) }}</dd>
+                    </div>
+                    <div>
+                        <dt>Payment</dt>
+                        <dd><span class="payment-status" [attr.data-payment]="o.paymentStatus.toLowerCase()">{{ o.paymentStatus }}</span></dd>
+                    </div>
+                    @if (o.paymentReference) {
+                        <div><dt>Reference</dt><dd>{{ o.paymentReference }}</dd></div>
+                    }
+                    @if (o.courierName) {
+                        <div><dt>Courier</dt><dd>{{ o.courierName }}</dd></div>
+                    }
+                    @if (o.trackingNumber) {
+                        <div><dt>Tracking</dt><dd>{{ o.trackingNumber }}</dd></div>
+                    }
+                </dl>
+            </section>
+        </aside>
+    </div>
 }

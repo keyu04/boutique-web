@@ -1,78 +1,131 @@
-<div class="head">
-  <h1>Orders</h1>
-</div>
+<header class="page-head">
+  <div>
+    <h1>Orders</h1>
+    <p>Manage orders, review payments and track fulfilment.</p>
+  </div>
+  <div class="breadcrumb" aria-label="Breadcrumb">
+    <span>{{ brand.name }} store</span>
+    <span aria-hidden="true">/</span>
+    <strong>Order management</strong>
+  </div>
+</header>
 
-<div class="tools">
-  <input #search type="search" class="search" placeholder="Search orders" aria-label="Search orders"
-         [value]="searchText()" (input)="searchText.set(search.value)" />
+<section class="filter-panel" aria-label="Filter orders">
+  <div class="field search-field">
+    <label for="order-search">Search orders</label>
+    <div class="search-control">
+      <svg viewBox="0 0 20 20" aria-hidden="true"><circle cx="8.8" cy="8.8" r="5.8" /><path d="m13.2 13.2 4 4" /></svg>
+      <input #search id="order-search" type="search" placeholder="Search by order ID or customer"
+             [value]="searchText()" (input)="searchText.set(search.value)" />
+    </div>
+  </div>
 
-  <div class="field">
-    <label for="status">Status</label>
+  <div class="field status-field">
+    <label for="status">Fulfillment status</label>
     <select #statusSel id="status" [value]="status()" (change)="setStatus(statusSel.value)">
-      <option value="">All</option>
+      <option value="">All statuses</option>
       @for (s of statuses; track s) { <option [value]="s">{{ s }}</option> }
     </select>
   </div>
-  <div class="field">
+  <div class="field date-field">
     <label for="from">From</label>
     <input #fromInput id="from" type="date" [value]="from()" (change)="setFrom(fromInput.value)" />
   </div>
-  <div class="field">
+  <div class="field date-field">
     <label for="to">To</label>
     <input #toInput id="to" type="date" [value]="to()" (change)="setTo(toInput.value)" />
   </div>
   @if (hasFilters()) {
-    <button type="button" class="btn btn-ghost btn-small" (click)="clearFilters()">Clear filters</button>
+    <button type="button" class="clear-button" (click)="clearFilters()">Clear filters</button>
   }
-</div>
+</section>
 
 @if (error(); as e) {
   <div class="notice" role="alert">
     <p>{{ e }}</p>
-    <button type="button" class="btn btn-ghost btn-small" (click)="retry()">Try again</button>
+    <button type="button" class="retry-button" (click)="retry()">Try again</button>
   </div>
 }
 
 @if (data(); as d) {
-  @if (d.items.length === 0) {
-    <p class="empty">@if (hasFilters()) { No orders match these filters. } @else { No orders yet. }</p>
-  } @else {
-    <div class="tablewrap" [class.loading]="loading()" [attr.aria-busy]="loading()">
-      <table>
-        <thead>
-          <tr>
-            <th scope="col">Order</th>
-            <th scope="col">Customer</th>
-            <th scope="col" class="num">Items</th>
-            <th scope="col" class="num">Total</th>
-            <th scope="col">Payment</th>
-            <th scope="col">Status</th>
-          </tr>
-        </thead>
-        <tbody>
-          @for (o of d.items; track o.id) {
-            <tr>
-              <td>
-                <a class="name" [routerLink]="['/orders', o.id]"><strong>{{ o.orderNumber }}</strong></a><br />
-                <small>{{ o.createdAt | date: 'd MMM y, h:mm a' }}</small>
-              </td>
-              <td>{{ o.customerName }}<br /><small>{{ o.city }}</small></td>
-              <td class="num">{{ o.itemCount }}</td>
-              <td class="num">{{ o.total | currency: 'INR' : 'symbol' : '1.0-0' }}</td>
-              <td>{{ paymentLabel(o.paymentMethod) }}<br /><small>{{ o.paymentStatus }}</small></td>
-              <td><app-status-badge [status]="o.status" /></td>
-            </tr>
-          }
-        </tbody>
-      </table>
-    </div>
-  }
+  <section class="orders-panel" [class.loading]="loading()" [attr.aria-busy]="loading()" aria-labelledby="results-title">
+    <header class="panel-head">
+      <div class="panel-title">
+        <h2 id="results-title">{{ statusTitle() }}</h2>
+        <span class="result-count">{{ total() ?? d.items.length }}</span>
+      </div>
+      @if (pendingPayments() > 0) {
+        <span class="pending-payments">
+          <svg viewBox="0 0 16 16" aria-hidden="true"><circle cx="8" cy="8" r="5.5" /><path d="M8 4.8V8l2 1.3" /></svg>
+          {{ pendingPayments() }} {{ pendingPayments() === 1 ? 'payment' : 'payments' }} pending
+        </span>
+      }
+    </header>
 
-  <nav class="pager" aria-label="Pagination">
-    <button type="button" class="btn btn-ghost btn-small" [disabled]="page() <= 1 || loading()" (click)="go(-1)">Previous</button>
-    <span>Page {{ page() }}@if (total() !== null) { · {{ total() }} orders }</span>
-    <button type="button" class="btn btn-ghost btn-small" [disabled]="!hasNext() || loading()" (click)="go(1)">Next</button>
-  </nav>
+    @if (d.items.length === 0) {
+      <p class="empty">@if (hasFilters()) { No orders match these filters. } @else { No orders yet. }</p>
+    } @else {
+      <div class="table-scroll">
+        <table>
+          <thead>
+            <tr>
+              <th scope="col">Order <span class="sort-mark" aria-hidden="true">↓</span></th>
+              <th scope="col">Customer</th>
+              <th scope="col" class="items-cell">Items</th>
+              <th scope="col" class="money-cell">Total</th>
+              <th scope="col">Payment</th>
+              <th scope="col">Fulfillment</th>
+              <th scope="col"><span class="visually-hidden">Open order</span></th>
+            </tr>
+          </thead>
+          <tbody>
+            @for (o of d.items; track o.id) {
+              <tr class="clickable-row" tabindex="0" [attr.aria-label]="'Open order ' + o.orderNumber"
+                  (click)="openOrderRow($event, o.id)" (keydown.enter)="openOrderRow($event, o.id)">
+                <td class="order-cell">
+                  <a class="order-number" [routerLink]="['/orders', o.id]">{{ o.orderNumber }}</a>
+                  <small>{{ o.createdAt | date: 'd MMM y, h:mm a' }}</small>
+                </td>
+                <td class="customer-cell">
+                  <span>{{ o.customerName }}</span>
+                  <small>{{ o.city }}</small>
+                </td>
+                <td class="items-cell">{{ o.itemCount }}</td>
+                <td class="money-cell">{{ o.total | currency: 'INR' : 'symbol' : '1.0-0' }}</td>
+                <td class="payment-cell">
+                  <span>{{ paymentLabel(o.paymentMethod) }}</span>
+                  <span class="payment-status" [attr.data-payment]="o.paymentStatus.toLowerCase()">
+                    @if (o.paymentStatus.toLowerCase() === 'paid') {
+                      <svg viewBox="0 0 14 14" aria-hidden="true"><circle cx="7" cy="7" r="5.2" /><path d="m4.5 7 1.6 1.6 3.5-3.5" /></svg>
+                    } @else {
+                      <svg viewBox="0 0 14 14" aria-hidden="true"><circle cx="7" cy="7" r="5.2" /><path d="M7 4.2v3.1l1.8 1" /></svg>
+                    }
+                    {{ o.paymentStatus }}
+                  </span>
+                </td>
+                <td><app-status-badge [status]="o.status" /></td>
+                <td class="open-cell"><a [routerLink]="['/orders', o.id]" [attr.aria-label]="'Open order ' + o.orderNumber">›</a></td>
+              </tr>
+            }
+          </tbody>
+        </table>
+      </div>
+    }
+
+    <footer class="table-footer">
+      <span>Showing {{ showingFrom() }}–{{ showingTo() }} of {{ total() ?? showingTo() }} orders</span>
+      <nav class="pager" aria-label="Pagination">
+        <button type="button" [disabled]="page() <= 1 || loading()" (click)="go(-1)">Previous</button>
+        <strong>{{ page() }}</strong>
+        <span>of {{ pageCount() ?? '…' }}</span>
+        <button type="button" [disabled]="!hasNext() || loading()" (click)="go(1)">Next</button>
+      </nav>
+    </footer>
+  </section>
+  <p class="payment-note">
+    <svg viewBox="0 0 16 16" aria-hidden="true"><circle cx="8" cy="8" r="5.5" /><path d="M8 7v3M8 5.2v.2" /></svg>
+    Payment status is tracked separately from fulfillment. Delivered orders may still have a pending payment.
+  </p>
 } @else if (loading()) {
-  <p class="empty">Loading…</p>
+  <p class="empty loading-message">Loading orders…</p>
 }
