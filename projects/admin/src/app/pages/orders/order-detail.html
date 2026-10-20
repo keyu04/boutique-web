@@ -44,7 +44,23 @@
                         <tbody>
                             @for (i of o.items; track i.variantId) {
                                 <tr>
-                                    <td class="product-name">{{ i.productName }}</td>
+                                    <td class="product-name">
+                                        <span class="product-item">
+                                            @if (i.imageUrl) {
+                                                <button type="button" class="product-thumb-button"
+                                                        [attr.aria-label]="'Preview image of ' + i.productName"
+                                                        (mouseenter)="showImagePreview($event, i.imageUrl, i.productName)"
+                                                        (mouseleave)="hideImagePreview()"
+                                                        (focus)="showImagePreview($event, i.imageUrl, i.productName)"
+                                                        (blur)="hideImagePreview()">
+                                                    <img class="product-thumb" [src]="i.imageUrl" [alt]="i.productName" loading="lazy" />
+                                                </button>
+                                            } @else {
+                                                <span class="product-thumb placeholder" aria-hidden="true"></span>
+                                            }
+                                            <span>{{ i.productName }}</span>
+                                        </span>
+                                    </td>
                                     <td>{{ i.size }}</td>
                                     <td class="num">{{ i.quantity }}</td>
                                     <td class="num">{{ i.unitPrice | currency: 'INR' : 'symbol' : '1.0-0' }}</td>
@@ -76,6 +92,11 @@
                             <dt>Margin on items</dt>
                             <dd>{{ margin() | currency: 'INR' : 'symbol' : '1.0-0' }}</dd>
                         </div>
+                        @if (imagePreview(); as preview) {
+                            <div class="image-preview" aria-hidden="true" [style.left.px]="preview.left" [style.top.px]="preview.top">
+                                <img [src]="preview.url" [alt]="preview.name" />
+                            </div>
+                        }
                     }
                 </dl>
             </section>
@@ -182,4 +203,9 @@
             </section>
         </aside>
     </div>
+    @if (imagePreview(); as preview) {
+        <div class="image-preview" aria-hidden="true" [style.left.px]="preview.left" [style.top.px]="preview.top">
+            <img [src]="preview.url" [alt]="preview.name" />
+        </div>
+    }
 }

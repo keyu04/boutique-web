@@ -46,6 +46,9 @@
     <button type="button" class="retry-button" (click)="retry()">Try again</button>
   </div>
 }
+@if (pdfError(); as e) {
+  <p class="pdf-error" role="alert">{{ e }}</p>
+}
 
 @if (data(); as d) {
   <section class="orders-panel" [class.loading]="loading()" [attr.aria-busy]="loading()" aria-labelledby="results-title">
@@ -75,6 +78,7 @@
               <th scope="col" class="money-cell">Total</th>
               <th scope="col">Payment</th>
               <th scope="col">Fulfillment</th>
+              <th scope="col"><span class="visually-hidden">Order documents</span></th>
               <th scope="col"><span class="visually-hidden">Open order</span></th>
             </tr>
           </thead>
@@ -104,6 +108,22 @@
                   </span>
                 </td>
                 <td><app-status-badge [status]="o.status" /></td>
+                <td class="card-cell">
+                  <div class="document-actions">
+                    <button type="button" class="card-button" [disabled]="pdfLoadingId() !== null"
+                            [attr.aria-label]="'Download thank-you card for ' + o.customerName"
+                            title="Download thank-you card PDF" (click)="downloadThankYouCard($event, o)">
+                      <svg viewBox="0 0 18 18" aria-hidden="true"><path d="M4 6V2.5h10V6M4 13H2.5V7.5h13V13H14M4 10.5h10v5H4z" /><path d="M12 8.8h1" /></svg>
+                      <span>{{ pdfLoadingId() === o.id ? 'Generating…' : 'Thank-you PDF' }}</span>
+                    </button>
+                    <button type="button" class="card-button" [disabled]="pdfLoadingId() !== null"
+                            [attr.aria-label]="'Download order summary for ' + o.orderNumber"
+                            title="Download order summary PDF" (click)="downloadOrderSummary($event, o)">
+                      <svg viewBox="0 0 18 18" aria-hidden="true"><path d="M4 2.5h7l3 3v10H4zM10.5 2.5v3h3M7 9h4M7 12h4" /></svg>
+                      <span>{{ pdfLoadingId() === o.id ? 'Generating…' : 'Summary PDF' }}</span>
+                    </button>
+                  </div>
+                </td>
                 <td class="open-cell"><a [routerLink]="['/orders', o.id]" [attr.aria-label]="'Open order ' + o.orderNumber">›</a></td>
               </tr>
             }

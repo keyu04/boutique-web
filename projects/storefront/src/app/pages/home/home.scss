@@ -76,18 +76,47 @@
 
 .grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(230px, 1fr)); gap: 40px 24px; transition: opacity 140ms ease; }
 .grid.updating { opacity: 0.58; }
-.item { position: relative; }
-.item img { width: 100%; aspect-ratio: 3 / 4; object-fit: cover; border-radius: 6px; }
+.item { min-width: 0; }
+.product-image { position: relative; overflow: hidden; border-radius: 6px; background: color-mix(in srgb, var(--blush) 70%, white); }
+.image-link { display: block; }
+.product-image img { display: block; width: 100%; aspect-ratio: 3 / 4; object-fit: cover; transition: transform 350ms ease; }
+.product-image:hover img { transform: scale(1.025); }
 .tag {
   position: absolute; top: 12px; left: 12px;
   padding: 3px 10px; border-radius: 999px;
   background: var(--cream); color: var(--burgundy);
   font-size: 0.8rem; font-weight: 500;
 }
-.item h3 { font-size: 1.15rem; margin: 14px 0 4px; }
+.product-copy { display: block; color: inherit; text-decoration: none; }
+.product-copy h3 { font-size: 1.15rem; margin: 14px 0 4px; }
 .price { margin: 0; color: var(--burgundy); font-weight: 600; }
 .price s { margin-left: 8px; color: var(--muted); font-weight: 400; }
+.image-previous, .image-next { position: absolute; z-index: 2; top: 50%; display: grid; width: 34px; height: 34px; place-items: center; transform: translateY(-50%); border: 0; border-radius: 50%; background: rgb(249 240 228 / 92%); color: var(--burgundy); cursor: pointer; opacity: 0; transition: opacity 150ms ease, background-color 150ms ease; }
+.image-previous { left: 10px; }
+.image-next { right: 10px; }
+.product-image:hover .image-previous, .product-image:hover .image-next, .image-previous:focus-visible, .image-next:focus-visible { opacity: 1; }
+.image-previous svg, .image-next svg { width: 18px; height: 18px; fill: none; stroke: currentColor; stroke-linecap: round; stroke-linejoin: round; stroke-width: 1.6; }
+.gallery-loading { position: absolute; top: 12px; right: 12px; padding: 4px 8px; border-radius: 999px; background: rgb(249 240 228 / 92%); color: var(--burgundy); font-size: 0.72rem; }
+.gallery-dots { position: absolute; z-index: 2; right: 0; bottom: 56px; left: 0; display: flex; justify-content: center; gap: 5px; pointer-events: none; }
+.gallery-dots button { width: 7px; height: 7px; padding: 0; border: 0; border-radius: 50%; background: rgb(255 255 255 / 72%); box-shadow: 0 0 2px rgb(0 0 0 / 35%); cursor: pointer; pointer-events: auto; }
+.gallery-dots button.active { width: 16px; border-radius: 5px; background: var(--burgundy); }
+.card-add { position: absolute; z-index: 3; right: 10px; bottom: 10px; left: 10px; display: flex; min-height: 42px; align-items: center; justify-content: center; gap: 8px; border: 1px solid #e5d7c9; border-radius: 4px; background: var(--cream); color: var(--burgundy-deep); font: inherit; font-size: 0.9rem; cursor: pointer; opacity: 0.97; transition: background-color 150ms ease, opacity 150ms ease; }
+.card-add:hover, .card-add.open { background: #fffaf2; opacity: 1; }
+.card-add svg { width: 16px; height: 16px; fill: none; stroke: currentColor; stroke-linecap: round; stroke-linejoin: round; stroke-width: 1.6; }
+.quick-add-panel { position: absolute; z-index: 4; right: 10px; bottom: 60px; left: 10px; display: flex; flex-wrap: wrap; justify-content: center; gap: 7px; padding: 10px; border: 1px solid #e5d7c9; border-radius: 4px; background: rgb(249 240 228 / 96%); }
+.quick-size { min-width: 38px; height: 34px; padding: 0 8px; border: 1px solid #d8c8bc; border-radius: 3px; background: #fffdfa; color: var(--burgundy); font: inherit; font-size: 0.82rem; cursor: pointer; }
+.quick-size:hover:not(:disabled) { border-color: var(--burgundy); background: var(--burgundy); color: #fff; }
+.quick-size:disabled { color: #aaa39d; cursor: not-allowed; text-decoration: line-through; }
+.card-message { margin: 7px 0 0; color: #9b1c31; font-size: 0.78rem; }
+.card-message.success { color: #436a45; }
 .status { color: var(--muted); }
 .error { color: #9b1c31; }
 
-a.item { display: block; color: inherit; text-decoration: none; }
+.image-previous:focus-visible, .image-next:focus-visible, .card-add:focus-visible,
+.quick-size:focus-visible, .gallery-dots button:focus-visible, .product-copy:focus-visible { outline: 2px solid var(--burgundy); outline-offset: 3px; }
+@media (hover: none) {
+  .image-previous, .image-next { opacity: 1; }
+}
+@media (prefers-reduced-motion: reduce) {
+  .product-image img { transition: none; }
+}

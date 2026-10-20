@@ -30,6 +30,7 @@ export class OrderDetailPage {
 
     readonly state = signal<'loading' | 'ready' | 'notfound' | 'error'>('loading');
     readonly order = signal<AdminOrder | null>(null);
+    readonly imagePreview = signal<{ url: string; name: string; left: number; top: number } | null>(null);
     readonly updating = signal(false);
     readonly actionError = signal<string | null>(null);
 
@@ -41,6 +42,24 @@ export class OrderDetailPage {
 
     /** Worth entering once the parcel is packed, until it is delivered. */
     readonly canEditTracking = computed(() => ['Packed', 'Shipped'].includes(this.order()?.status ?? ''));
+
+    showImagePreview(event: Event, url: string, name: string): void {
+        const target = event.currentTarget;
+        if (!(target instanceof HTMLElement)) return;
+        const rect = target.getBoundingClientRect();
+        const width = 240;
+        const height = 300;
+        const left = rect.right + width + 16 <= window.innerWidth
+            ? rect.right + 12
+            : Math.max(12, rect.left - width - 12);
+        const maxTop = Math.max(12, window.innerHeight - height - 12);
+        const top = Math.min(Math.max(12, rect.top + rect.height / 2 - height / 2), maxTop);
+        this.imagePreview.set({ url, name, left, top });
+    }
+
+    hideImagePreview(): void {
+        this.imagePreview.set(null);
+    }
 
     saveTracking(event: Event): void {
         event.preventDefault();

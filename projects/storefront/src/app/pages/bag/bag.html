@@ -46,7 +46,7 @@
                   </div>
                 </div>
                 @if (l.quantity >= l.maxQuantity) {
-                  <p class="limit">Maximum for this size</p>
+                  <p class="limit">{{ quantityLimitMessage(l) }}</p>
                 }
 
                 <div class="item-footer">

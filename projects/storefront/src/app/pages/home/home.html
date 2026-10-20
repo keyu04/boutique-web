@@ -82,19 +82,66 @@
       }
       <div class="grid" [class.updating]="loading()" [attr.aria-busy]="loading()">
         @for (p of products(); track p.id) {
-        <a class="item" [routerLink]="['/product', p.slug]">
-          @if (p.image) {
-          <img [src]="p.image" [alt]="p.name" loading="lazy" />
+        <article class="item">
+          <div class="product-image">
+            <a class="image-link" [routerLink]="['/product', p.slug]" [attr.aria-label]="'View ' + p.name">
+              @if (imageFor(p); as image) {
+                <img [src]="image" [alt]="p.name" loading="lazy" />
+              }
+            </a>
+            @if (p.tag) { <span class="tag">{{ p.tag }}</span> }
+            @if (loadingGalleries()[p.id]) {
+              <span class="gallery-loading" role="status">Loading photos…</span>
+            } @else if ((galleries()[p.id]?.length ?? 0) > 1 || !galleries()[p.id]) {
+              @if ((galleries()[p.id]?.length ?? 0) > 1) {
+                <button type="button" class="image-previous" [disabled]="loadingGalleries()[p.id]"
+                        [attr.aria-label]="'Show previous photo for ' + p.name" (click)="moveImage(p, -1)">
+                  <svg viewBox="0 0 20 20" aria-hidden="true"><path d="m13 4-6 6 6 6" /></svg>
+                </button>
+              }
+              <button type="button" class="image-next" [disabled]="loadingGalleries()[p.id]"
+                      [attr.aria-label]="'Show next photo for ' + p.name" (click)="moveImage(p, 1)">
+                <svg viewBox="0 0 20 20" aria-hidden="true"><path d="m7 4 6 6-6 6" /></svg>
+              </button>
+            }
+            <button type="button" class="card-add" [class.open]="quickAddId() === p.id"
+                    [attr.aria-expanded]="quickAddId() === p.id" (click)="toggleQuickAdd(p)">
+              <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M5 8h14l1 13H4L5 8Z" /><path d="M9 8V6a3 3 0 0 1 6 0v2" /></svg>
+              <span>{{ quickAddId() === p.id ? 'Choose a size' : 'Add to bag' }}</span>
+            </button>
+            @if (quickAddId() === p.id) {
+              <div class="quick-add-panel" aria-label="Choose a size">
+                @for (size of p.sizes; track size.variantId) {
+                  <button type="button" class="quick-size" [disabled]="size.stockQuantity === 0"
+                          [attr.aria-label]="size.stockQuantity === 0 ? size.size + ', sold out' : 'Add size ' + size.size + ' to bag'"
+                          (click)="quickAdd(p, size)">{{ size.size }}</button>
+                }
+              </div>
+            }
+            @if (galleries()[p.id]; as gallery) {
+                @if (gallery.length > 1) {
+                  <div class="gallery-dots" [attr.aria-label]="'Photo ' + ((imageIndexes()[p.id] ?? 0) + 1) + ' of ' + gallery.length">
+                    @for (image of gallery; track image.id; let i = $index) {
+                    <button type="button" [class.active]="i === (imageIndexes()[p.id] ?? 0)"
+                            [attr.aria-label]="'Show photo ' + (i + 1)" [attr.aria-current]="i === (imageIndexes()[p.id] ?? 0) ? 'true' : null"
+                            (click)="selectImage(p.id, i)"></button>
+                    }
+                  </div>
+                }
+            }
+          </div>
+          @if (galleryErrors()[p.id]; as galleryError) { <p class="card-message" role="alert">{{ galleryError }}</p> }
+          @if (quickAddMessageProductId() === p.id && quickAddMessage(); as message) {
+            <p class="card-message" [class.success]="quickAddSuccess()" [attr.role]="quickAddSuccess() ? 'status' : 'alert'">{{ message }}</p>
           }
-          @if (p.tag) {
-          <span class="tag">{{ p.tag }}</span>
-          }
-          <h3>{{ p.name }}</h3>
-          <p class="price">
-            {{ p.price | currency: 'INR' : 'symbol' : '1.0-0' }}
-            <s>{{ p.mrp | currency: 'INR' : 'symbol' : '1.0-0' }}</s>
-          </p>
-        </a>
+          <a class="product-copy" [routerLink]="['/product', p.slug]">
+            <h3>{{ p.name }}</h3>
+            <p class="price">
+              {{ p.price | currency: 'INR' : 'symbol' : '1.0-0' }}
+              <s>{{ p.mrp | currency: 'INR' : 'symbol' : '1.0-0' }}</s>
+            </p>
+          </a>
+        </article>
         }
       </div>
       }

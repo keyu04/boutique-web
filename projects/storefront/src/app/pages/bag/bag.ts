@@ -51,6 +51,11 @@ export class BagPage {
         this.bag.setQuantity(line.variantId, line.quantity + delta);
     }
 
+    quantityLimitMessage(line: BagLine): string {
+        if (line.maxQuantity >= 10) return 'You’ve reached the limit of 10 per size.';
+        return `You’ve added all ${line.maxQuantity} available ${line.maxQuantity === 1 ? 'item' : 'items'} in this size.`;
+    }
+
     checkShipping(event: Event): void {
         event.preventDefault();
         const pincode = this.pincode().trim();

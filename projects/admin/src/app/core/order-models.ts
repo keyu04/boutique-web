@@ -16,6 +16,7 @@ export interface AdminOrderItem {
   productId: number;
   variantId: number;
   productName: string;
+  imageUrl?: string | null;
   size: string;
   unitPrice: number;
   unitCost?: number | null; // Admin only
