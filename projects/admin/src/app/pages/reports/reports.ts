@@ -16,6 +16,8 @@ function isoDay(offsetDays = 0): string {
   return d.toISOString().slice(0, 10);
 }
 
+const MONTH_FORMAT = new Intl.DateTimeFormat('en', { month: 'long', timeZone: 'UTC' });
+
 @Component({
   selector: 'app-reports',
   imports: [CurrencyPipe, DecimalPipe],
@@ -27,6 +29,16 @@ export class ReportsPage {
 
   readonly from = signal('');
   readonly to = signal('');
+  readonly selectedMonth = signal('');
+  private readonly now = new Date();
+  readonly currentYear = this.now.getUTCFullYear();
+  readonly months = Array.from({ length: this.now.getUTCMonth() + 1 }, (_, offset) => {
+    const monthIndex = this.now.getUTCMonth() - offset;
+    return {
+      value: String(monthIndex + 1),
+      label: MONTH_FORMAT.format(new Date(Date.UTC(this.currentYear, monthIndex, 1))),
+    };
+  });
   readonly data = signal<ReportSummary | null>(null);
   readonly loading = signal(true);
   readonly error = signal<string | null>(null);
@@ -51,6 +63,7 @@ export class ReportsPage {
 
   apply(event: Event): void {
     event.preventDefault();
+    this.selectedMonth.set('');
     const from = this.from();
     const to = this.to();
     if (!from || !to) {
@@ -65,8 +78,22 @@ export class ReportsPage {
   }
 
   preset(days: number | 'month'): void {
+    this.selectedMonth.set('');
     const to = isoDay(0);
     const from = days === 'month' ? `${to.slice(0, 8)}01` : isoDay(-(days - 1));
+    this.from.set(from);
+    this.to.set(to);
+    this.load(from, to);
+  }
+
+  selectMonth(value: string): void {
+    this.selectedMonth.set(value);
+    const month = Number(value);
+    if (!Number.isInteger(month) || month < 1 || month > 12) return;
+
+    const from = `${this.currentYear}-${String(month).padStart(2, '0')}-01`;
+    const lastDay = new Date(Date.UTC(this.currentYear, month, 0)).getUTCDate();
+    const to = `${this.currentYear}-${String(month).padStart(2, '0')}-${String(lastDay).padStart(2, '0')}`;
     this.from.set(from);
     this.to.set(to);
     this.load(from, to);

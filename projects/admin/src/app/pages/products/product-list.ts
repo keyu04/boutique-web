@@ -32,6 +32,11 @@ export class ProductListPage {
     const d = this.data();
     return d ? Math.max(1, Math.ceil(d.total / PAGE_SIZE)) : 1;
   });
+  readonly showingFrom = computed(() => this.data()?.items.length ? (this.page() - 1) * PAGE_SIZE + 1 : 0);
+  readonly showingTo = computed(() => {
+    const d = this.data();
+    return d ? Math.min((this.page() - 1) * PAGE_SIZE + d.items.length, d.total) : 0;
+  });
 
   constructor() {
     inject(Title).setTitle(`Products | ${BRAND.name} Admin`);

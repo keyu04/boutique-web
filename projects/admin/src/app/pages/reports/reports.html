@@ -1,22 +1,38 @@
-<div class="head">
+<header class="page-head">
   <h1>Reports</h1>
-</div>
+</header>
 
 <form class="range" (submit)="apply($event)">
-  <div class="field">
-    <label for="from">From</label>
-    <input #fromInput id="from" type="date" [value]="from()" (input)="from.set(fromInput.value)" />
+  <div class="date-fields">
+    <div class="field">
+      <label for="from">From</label>
+      <input #fromInput id="from" type="date" [value]="from()" (input)="selectedMonth.set(''); from.set(fromInput.value)" />
+    </div>
+    <span class="date-separator" aria-hidden="true">–</span>
+    <div class="field">
+      <label for="to">To (included)</label>
+      <input #toInput id="to" type="date" [value]="to()" (input)="selectedMonth.set(''); to.set(toInput.value)" />
+    </div>
+    <button type="submit" class="apply-button" [disabled]="loading()">Apply</button>
   </div>
-  <div class="field">
-    <label for="to">To (included)</label>
-    <input #toInput id="to" type="date" [value]="to()" (input)="to.set(toInput.value)" />
+  <div class="month-field">
+    <label for="month">Monthly report · {{ currentYear }}</label>
+    <select #monthInput id="month" class="month-select" [value]="selectedMonth()" [disabled]="loading()"
+            (change)="selectMonth(monthInput.value)">
+      <option value="">Select month</option>
+      @for (month of months; track month.value) {
+        <option [value]="month.value">{{ month.label }}</option>
+      }
+    </select>
   </div>
-  <button type="submit" class="btn btn-small" [disabled]="loading()">Apply</button>
-  <div class="presets">
-    <button type="button" class="btn btn-ghost btn-small" [disabled]="loading()" (click)="preset(7)">Last 7 days</button>
-    <button type="button" class="btn btn-ghost btn-small" [disabled]="loading()" (click)="preset(30)">Last 30 days</button>
-    <button type="button" class="btn btn-ghost btn-small" [disabled]="loading()" (click)="preset(90)">Last 90 days</button>
-    <button type="button" class="btn btn-ghost btn-small" [disabled]="loading()" (click)="preset('month')">This month</button>
+  <div class="presets" aria-label="Quick date selection">
+    <span class="preset-label">Quick select</span>
+    <div class="preset-buttons">
+      <button type="button" class="preset-button" [disabled]="loading()" (click)="preset(7)">Last 7 days</button>
+      <button type="button" class="preset-button" [disabled]="loading()" (click)="preset(30)">Last 30 days</button>
+      <button type="button" class="preset-button" [disabled]="loading()" (click)="preset(90)">Last 90 days</button>
+      <button type="button" class="preset-button" [disabled]="loading()" (click)="preset('month')">This month</button>
+    </div>
   </div>
 </form>
 
@@ -24,33 +40,37 @@
 
 @if (data(); as d) {
   <div class="tiles" [class.loading]="loading()" [attr.aria-busy]="loading()">
-    <div class="tile"><p class="label">Orders</p><p class="value">{{ d.orderCount }}</p></div>
-    <div class="tile"><p class="label">Item revenue</p><p class="value">{{ d.itemRevenue | currency: 'INR' : 'symbol' : '1.0-0' }}</p></div>
-    <div class="tile"><p class="label">Shipping collected</p><p class="value">{{ d.shippingCollected | currency: 'INR' : 'symbol' : '1.0-0' }}</p></div>
-    <div class="tile"><p class="label">Cost of goods</p><p class="value">{{ d.cost | currency: 'INR' : 'symbol' : '1.0-0' }}</p></div>
-    <div class="tile">
+    <article class="tile"><p class="label">Orders</p><p class="value">{{ d.orderCount }}</p></article>
+    <article class="tile"><p class="label">Item revenue</p><p class="value">{{ d.itemRevenue | currency: 'INR' : 'symbol' : '1.0-0' }}</p></article>
+    <article class="tile"><p class="label">Shipping collected</p><p class="value">{{ d.shippingCollected | currency: 'INR' : 'symbol' : '1.0-0' }}</p></article>
+    <article class="tile"><p class="label">Cost of goods</p><p class="value">{{ d.cost | currency: 'INR' : 'symbol' : '1.0-0' }}</p></article>
+    <article class="tile margin-tile">
       <p class="label">Margin</p>
       <p class="value">{{ d.margin | currency: 'INR' : 'symbol' : '1.0-0' }}</p>
       <p class="sub">{{ d.marginPercent | number: '1.0-1' }}% of item revenue</p>
-    </div>
+    </article>
   </div>
-  <p class="muted">
-    Revenue, cost and margin count orders that are Confirmed, Packed, Shipped or Delivered.
-    Pending and Cancelled orders are not included. Period: {{ d.from }} to {{ d.to }}.
+  <p class="report-note">
+    <span class="info-icon" aria-hidden="true">i</span>
+    <span>Revenue, cost and margin include Confirmed, Packed, Shipped and Delivered orders. Pending and Cancelled orders are excluded. Period: {{ d.from }} to {{ d.to }}.</span>
   </p>
 
-  <section class="card">
-    <h2>Orders by status</h2>
-    <ul class="bars">
+  <section class="status-card" aria-labelledby="status-heading">
+    <header class="status-heading">
+      <h2 id="status-heading">Orders by status</h2>
+      <p><span class="legend-dot" aria-hidden="true"></span> Included in revenue, cost and margin</p>
+    </header>
+    <div class="status-columns" aria-hidden="true"><span>Status</span><span>Orders</span></div>
+    <ul class="bars" aria-label="Orders by status">
       @for (r of rows(); track r.status) {
         <li>
-          <span class="name">{{ r.status }}</span>
-          <span class="track" aria-hidden="true"><span class="fill" [class.dim]="!r.counted" [style.width.%]="r.width"></span></span>
+          <span class="name"><span class="status-dot" [class.included]="r.counted" aria-hidden="true"></span>{{ r.status }}</span>
+          <span class="track" role="img" [attr.aria-label]="r.count + ' orders'"><span class="fill" [class.dim]="!r.counted" [style.width.%]="r.width"></span></span>
           <span class="count">{{ r.count }}</span>
         </li>
       }
     </ul>
   </section>
 } @else if (loading()) {
-  <p class="muted">Loading…</p>
+  <p class="loading-message" role="status">Loading report…</p>
 }

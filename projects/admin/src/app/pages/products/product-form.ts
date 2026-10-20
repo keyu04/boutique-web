@@ -10,7 +10,7 @@ import { ActivatedRoute, Router, RouterLink } from '@angular/router';
 import { BRAND, CategoriesApi, apiMessage } from '@shared';
 import { AdminImage, AdminProduct, CreateProductRequest } from '../../core/admin-models';
 import { AdminProductsApi } from '../../core/admin-products.api';
-import { MAX_IMAGES, checkImageFiles } from '../../core/image-rules';
+import { MAX_IMAGES, prepareImageFiles } from '../../core/image-rules';
 import { ImageManager } from './image-manager';
 
 const SIZES = ['S', 'M', 'L', 'XL', 'XXL'] as const;
@@ -22,6 +22,11 @@ function mrpNotBelowPrice(group: AbstractControl): ValidationErrors | null {
   const price = group.get('price')?.value;
   const mrp = group.get('mrp')?.value;
   return price != null && mrp != null && mrp < price ? { mrpBelowPrice: true } : null;
+}
+
+function wholeRupees(control: AbstractControl): ValidationErrors | null {
+  const value = control.value;
+  return value == null || value === '' || Number.isInteger(Number(value)) ? null : { wholeRupees: true };
 }
 
 @Component({
@@ -52,9 +57,9 @@ export class ProductFormPage {
       color: ['', [Validators.required, Validators.maxLength(40)]],
       fabric: ['', [Validators.required, Validators.maxLength(40)]],
       tag: ['', [Validators.maxLength(30)]],
-      price: this.fb.control<number | null>(null, [Validators.required, Validators.min(1)]),
-      mrp: this.fb.control<number | null>(null, [Validators.required, Validators.min(1)]),
-      costPrice: this.fb.control<number | null>(null, [Validators.required, Validators.min(0)]),
+      price: this.fb.control<number | null>(null, [Validators.required, Validators.min(1), wholeRupees]),
+      mrp: this.fb.control<number | null>(null, [Validators.required, Validators.min(1), wholeRupees]),
+      costPrice: this.fb.control<number | null>(null, [Validators.required, Validators.min(0), wholeRupees]),
       weightKg: this.fb.control<number | null>(null, [Validators.required, Validators.min(0.01), Validators.max(50)]),
       stock: this.fb.group({
         S: this.qty(), M: this.qty(), L: this.qty(), XL: this.qty(), XXL: this.qty(),
@@ -78,7 +83,18 @@ export class ProductFormPage {
 
   // Photos picked on the create page, uploaded right after the product is created
   readonly pending = signal<PendingPhoto[]>([]);
+  readonly processingPhotos = signal(false);
+  readonly draggedPendingIndex = signal<number | null>(null);
+  readonly selectedPendingUrl = signal<string | null>(null);
   readonly photoProblems = signal<string[]>([]);
+  readonly photoRequiredError = signal(false);
+  readonly selectedPending = computed(() => {
+    const pending = this.pending();
+    return pending.find(photo => photo.url === this.selectedPendingUrl()) ?? pending[0] ?? null;
+  });
+  readonly selectedPendingIndex = computed(() =>
+    this.pending().findIndex(photo => photo.url === this.selectedPending()?.url),
+  );
 
   private readonly values = toSignal(this.form.valueChanges, { initialValue: this.form.getRawValue() });
   readonly margin = computed(() => {
@@ -86,6 +102,10 @@ export class ProductFormPage {
     if (!v.price || v.costPrice == null) return null;
     const amount = v.price - v.costPrice;
     return { amount, percent: Math.round((amount / v.price) * 100) };
+  });
+  readonly totalStock = computed(() => {
+    const stock = this.values().stock;
+    return SIZES.reduce((total, size) => total + Number(stock?.[size] ?? 0), 0);
   });
 
   constructor() {
@@ -139,6 +159,7 @@ export class ProductFormPage {
     if (e['max']) return `Must be at most ${e['max'].max}.`;
     if (e['maxlength']) return `Keep it under ${e['maxlength'].requiredLength} characters.`;
     if (e['pattern']) return 'Enter a whole number.';
+    if (e['wholeRupees']) return 'Enter a whole rupee amount without decimals.';
     return 'Invalid value.';
   }
 
@@ -168,10 +189,12 @@ export class ProductFormPage {
     if (this.submitting()) return;
     this.submitted.set(true);
     this.submitError.set(null);
+    this.photoRequiredError.set(!this.isEdit && this.pending().length === 0);
     if (this.form.invalid) {
       this.form.markAllAsTouched();
       return;
     }
+    if (this.photoRequiredError()) return;
     this.submitting.set(true);
     if (this.isEdit) this.update(); else this.create();
   }
@@ -204,14 +227,30 @@ export class ProductFormPage {
   private uploadThenOpen(id: number): void {
     const files = this.pending().map(p => p.file);
     if (files.length === 0) {
-      this.open(id, 'Product created. Add some photos below so it looks good in the store.');
+      this.resetForNextProduct('Product created.');
       return;
     }
     this.api.uploadImages(id, files).subscribe({
-      next: () => this.open(id, 'Product created with its photos.'),
+      next: () => this.resetForNextProduct('Product created with its photos.'),
       error: (e: HttpErrorResponse) =>
         this.open(id, `Product created, but the photos could not be uploaded: ${apiMessage(e)} You can add them below.`),
     });
+  }
+
+  private resetForNextProduct(message: string): void {
+    this.pending().forEach(photo => URL.revokeObjectURL(photo.url));
+    this.pending.set([]);
+    this.selectedPendingUrl.set(null);
+    this.draggedPendingIndex.set(null);
+    this.photoProblems.set([]);
+    this.photoRequiredError.set(false);
+    this.form.reset();
+    this.form.markAsPristine();
+    this.form.markAsUntouched();
+    this.submitted.set(false);
+    this.submitting.set(false);
+    this.submitError.set(null);
+    this.notice.set(message);
   }
 
   private open(id: number, notice: string): void {
@@ -219,18 +258,70 @@ export class ProductFormPage {
   }
 
   // ---- create mode: photos chosen before the product exists ----
-  addPending(event: Event): void {
-    const input = event.target as HTMLInputElement;
-    const files = Array.from(input.files ?? []);
-    input.value = '';
-    const { ok, problems } = checkImageFiles(files, this.pending().length);
-    this.photoProblems.set(problems);
-    this.pending.update(list => [...list, ...ok.map(file => ({ file, url: URL.createObjectURL(file) }))]);
+  async addPending(event: Event): Promise<void> {
+    event.preventDefault();
+    const input = event.target instanceof HTMLInputElement ? event.target : null;
+    const files = Array.from(input?.files ?? (event instanceof DragEvent ? event.dataTransfer?.files ?? [] : []));
+    if (input) input.value = '';
+    if (files.length === 0) return;
+    if (this.processingPhotos()) {
+      this.photoProblems.set(['Please wait for the current photos to finish processing.']);
+      return;
+    }
+
+    this.processingPhotos.set(true);
+    this.photoProblems.set([]);
+    try {
+      const { ok, problems } = await prepareImageFiles(files, this.pending().length);
+      this.photoProblems.set(problems);
+      const added = ok.map(file => ({ file, url: URL.createObjectURL(file) }));
+      this.pending.update(list => [...list, ...added]);
+      if (!this.selectedPendingUrl() && added.length > 0) this.selectedPendingUrl.set(added[0].url);
+      if (this.pending().length > 0) this.photoRequiredError.set(false);
+    } finally {
+      this.processingPhotos.set(false);
+    }
   }
 
   removePending(photo: PendingPhoto): void {
     URL.revokeObjectURL(photo.url);
     this.pending.update(list => list.filter(p => p !== photo));
+    if (this.selectedPendingUrl() === photo.url) {
+      this.selectedPendingUrl.set(this.pending()[0]?.url ?? null);
+    }
+    this.photoRequiredError.set(!this.isEdit && this.submitted() && this.pending().length === 0);
+  }
+
+  selectPending(photo: PendingPhoto): void {
+    this.selectedPendingUrl.set(photo.url);
+  }
+
+  startPendingDrag(event: DragEvent, index: number): void {
+    this.draggedPendingIndex.set(index);
+    event.dataTransfer?.setData('text/plain', String(index));
+    if (event.dataTransfer) event.dataTransfer.effectAllowed = 'move';
+  }
+
+  dropPending(event: DragEvent, targetIndex?: number): void {
+    event.preventDefault();
+    event.stopPropagation();
+    const fromIndex = this.draggedPendingIndex();
+    if (fromIndex === null) {
+      if (event.dataTransfer?.files.length) void this.addPending(event);
+      return;
+    }
+
+    const toIndex = targetIndex ?? this.pending().length - 1;
+    this.movePending(fromIndex, toIndex - fromIndex);
+    this.draggedPendingIndex.set(null);
+  }
+
+  movePending(index: number, delta: number): void {
+    const list = [...this.pending()];
+    const target = index + delta;
+    if (index < 0 || target < 0 || target >= list.length) return;
+    [list[index], list[target]] = [list[target], list[index]];
+    this.pending.set(list);
   }
 
   // ---- edit mode ----

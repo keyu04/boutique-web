@@ -1,73 +1,115 @@
-<div class="head">
-  <h1>Products</h1>
-  <a class="btn" routerLink="/products/new">New product</a>
+<div class="breadcrumb" aria-label="Breadcrumb">
+  <span>Store admin</span>
+  <span aria-hidden="true">›</span>
+  <strong>Products</strong>
 </div>
 
-<div class="tools">
-  <input #search type="search" class="search" placeholder="Search products" aria-label="Search products"
-         [value]="searchText()" (input)="searchText.set(search.value)" />
-</div>
+<header class="page-head">
+  <div>
+    <div class="title-row">
+      <h1>Products</h1>
+      @if (data(); as d) { <span class="product-count">{{ d.total }} products</span> }
+    </div>
+    <p>Manage your collection, pricing and inventory in one place.</p>
+  </div>
+  <a class="new-product" routerLink="/products/new"><span aria-hidden="true">＋</span> New product</a>
+</header>
 
 @if (error(); as e) {
   <div class="notice" role="alert">
     <p>{{ e }}</p>
-    <button type="button" class="btn btn-ghost btn-small" (click)="retry()">Try again</button>
+    <button type="button" class="retry-button" (click)="retry()">Try again</button>
   </div>
 }
 
 @if (data(); as d) {
-  @if (d.items.length === 0) {
-    <p class="empty">
-      @if (q()) { No products match “{{ q() }}”. } @else { No products yet. }
-    </p>
-  } @else {
-    <div class="tablewrap" [class.loading]="loading()" [attr.aria-busy]="loading()">
-      <table>
-        <thead>
-          <tr>
-            <th scope="col"><span class="sr">Image</span></th>
-            <th scope="col">Product</th>
-            <th scope="col">Category</th>
-            <th scope="col" class="num">Price</th>
-            <th scope="col" class="num">Cost</th>
-            <th scope="col" class="num">Margin</th>
-            <th scope="col" class="num">Stock</th>
-            <th scope="col">Status</th>
-            <th scope="col"><span class="sr">Actions</span></th>
-          </tr>
-        </thead>
-        <tbody>
-          @for (p of d.items; track p.id) {
-            <tr>
-              <td>
-                @if (p.image) { <img class="thumb" [src]="p.image" alt="" /> }
-                @else { <span class="thumb noimg"></span> }
-              </td>
-              <td><a class="name" [routerLink]="['/products', p.id]"><strong>{{ p.name }}</strong></a><br /><small>{{ p.slug }}</small></td>
-              <td>{{ p.categoryName }}</td>
-              <td class="num">
-                {{ p.price | currency: 'INR' : 'symbol' : '1.0-0' }}
-                <s>{{ p.mrp | currency: 'INR' : 'symbol' : '1.0-0' }}</s>
-              </td>
-              <td class="num">{{ p.costPrice | currency: 'INR' : 'symbol' : '1.0-0' }}</td>
-              <td class="num">{{ margin(p) }}%</td>
-              <td class="num" [class.low]="p.totalStock <= 5">
-                {{ p.totalStock }}@if (p.totalStock <= 5) { <small> low</small> }
-              </td>
-              <td><span class="badge" [class.off]="!p.isActive">{{ p.isActive ? 'Active' : 'Hidden' }}</span></td>
-              <td><a class="edit" [routerLink]="['/products', p.id]">Edit</a></td>
-            </tr>
-          }
-        </tbody>
-      </table>
+  <section class="products-panel" [class.loading]="loading()" [attr.aria-busy]="loading()">
+    <div class="panel-toolbar">
+      <label class="search-control">
+        <span class="visually-hidden">Search products</span>
+        <svg viewBox="0 0 20 20" aria-hidden="true"><circle cx="8.8" cy="8.8" r="5.8" /><path d="m13.2 13.2 4 4" /></svg>
+        <input #search type="search" placeholder="Search by product name"
+               [value]="searchText()" (input)="searchText.set(search.value)" />
+        @if (searchText()) {
+          <button type="button" class="clear-search" aria-label="Clear search" (click)="searchText.set('')">×</button>
+        }
+      </label>
+      <span class="collection-count">
+        @if (q()) { {{ d.total }} {{ d.total === 1 ? 'result' : 'results' }} for “{{ q() }}” }
+        @else { {{ d.total }} {{ d.total === 1 ? 'product' : 'products' }} in your collection }
+      </span>
     </div>
 
-    <nav class="pager" aria-label="Pagination">
-      <button type="button" class="btn btn-ghost btn-small" [disabled]="page() <= 1 || loading()" (click)="go(-1)">Previous</button>
-      <span>Page {{ page() }} of {{ totalPages() }} · {{ d.total }} products</span>
-      <button type="button" class="btn btn-ghost btn-small" [disabled]="page() >= totalPages() || loading()" (click)="go(1)">Next</button>
-    </nav>
-  }
+    @if (d.items.length === 0) {
+      <p class="empty">
+        @if (q()) { No products match “{{ q() }}”. } @else { No products yet. Add your first product to get started. }
+      </p>
+    } @else {
+      <div class="table-scroll">
+        <table>
+          <thead>
+            <tr>
+              <th scope="col"><span class="visually-hidden">Product image</span></th>
+              <th scope="col">Product</th>
+              <th scope="col">Category</th>
+              <th scope="col" class="number">Price</th>
+              <th scope="col" class="number">Cost</th>
+              <th scope="col" class="number">Margin</th>
+              <th scope="col">Stock</th>
+              <th scope="col">Status</th>
+              <th scope="col"><span class="visually-hidden">Actions</span></th>
+            </tr>
+          </thead>
+          <tbody>
+            @for (p of d.items; track p.id) {
+              <tr>
+                <td class="image-cell">
+                  @if (p.image) { <img class="thumb" [src]="p.image" [alt]="p.name" /> }
+                  @else { <span class="thumb no-image" aria-label="No product image"></span> }
+                </td>
+                <td class="product-cell">
+                  <a class="product-name" [routerLink]="['/products', p.id]">{{ p.name }}</a>
+                  <small>{{ p.slug }}</small>
+                </td>
+                <td class="category-cell">{{ p.categoryName }}</td>
+                <td class="number price-cell">
+                  <strong>{{ p.price | currency: 'INR' : 'symbol' : '1.0-0' }}</strong>
+                  <s>{{ p.mrp | currency: 'INR' : 'symbol' : '1.0-0' }}</s>
+                </td>
+                <td class="number">{{ p.costPrice | currency: 'INR' : 'symbol' : '1.0-0' }}</td>
+                <td class="number">{{ margin(p) }}%</td>
+                <td class="stock-cell">
+                  <span [class.low-stock]="p.totalStock <= 5">{{ p.totalStock }}</span>
+                  @if (p.totalStock > 0 && p.totalStock <= 5) { <small class="stock-warning">Low stock</small> }
+                  @if (p.totalStock === 0) { <small class="stock-warning">Out of stock</small> }
+                </td>
+                <td><span class="status-badge" [class.hidden-status]="!p.isActive"><span aria-hidden="true">●</span> {{ p.isActive ? 'Active' : 'Hidden' }}</span></td>
+                <td class="action-cell">
+                  <a class="edit-link" [routerLink]="['/products', p.id]">
+                    <svg viewBox="0 0 16 16" aria-hidden="true"><path d="m10.8 2.8 2.4 2.4M3 13l2.6-.5 7.1-7.1a1.7 1.7 0 0 0-2.4-2.4l-7.1 7.1L3 13Z" /></svg>
+                    Edit
+                  </a>
+                </td>
+              </tr>
+            }
+          </tbody>
+        </table>
+      </div>
+    }
+
+    <footer class="table-footer">
+      <span>Showing {{ showingFrom() }}–{{ showingTo() }} of {{ d.total }} products</span>
+      <nav class="pager" aria-label="Pagination">
+        <button type="button" [disabled]="page() <= 1 || loading()" (click)="go(-1)">
+          <span aria-hidden="true">‹</span> Previous
+        </button>
+        <span>Page {{ page() }} of {{ totalPages() }}</span>
+        <button type="button" [disabled]="page() >= totalPages() || loading()" (click)="go(1)">
+          Next <span aria-hidden="true">›</span>
+        </button>
+      </nav>
+    </footer>
+  </section>
 } @else if (loading()) {
-  <p class="empty">Loading…</p>
+  <p class="empty">Loading products…</p>
 }
