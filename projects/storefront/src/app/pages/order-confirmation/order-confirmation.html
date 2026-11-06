@@ -3,7 +3,7 @@
 <main class="page">
   <h1>Thank you, your order is placed</h1>
   <p class="number">Order number <strong>{{ orderNumber }}</strong></p>
-  <p class="hint">Please keep this number. You'll need it if you contact us about your order.</p>
+  <p class="hint">Please keep this number. You'll need it, with your phone number, to track your order or to contact us.</p>
 
   @if (order; as o) {
     <section class="card" aria-label="Order details">
@@ -20,5 +20,8 @@
     </section>
   }
 
-  <a class="btn" routerLink="/">Continue shopping</a>
+  <div class="actions">
+    <a class="btn" routerLink="/track" [queryParams]="{ order: orderNumber }">Track this order</a>
+    <a class="btn" routerLink="/">Continue shopping</a>
+  </div>
 </main>

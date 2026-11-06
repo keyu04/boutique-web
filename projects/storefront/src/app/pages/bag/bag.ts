@@ -3,7 +3,7 @@ import { HttpErrorResponse } from '@angular/common/http';
 import { Component, DestroyRef, computed, inject, signal } from '@angular/core';
 import { takeUntilDestroyed } from '@angular/core/rxjs-interop';
 import { Title } from '@angular/platform-browser';
-import { RouterLink } from '@angular/router';
+import { Router, RouterLink } from '@angular/router';
 import { BRAND, ShippingApi } from '@shared';
 import { BagLine, BagService } from '../../core/bag.service';
 import { SiteHeader } from '../../core/site-header';
@@ -24,6 +24,7 @@ interface ShippingResult {
 })
 export class BagPage {
     readonly bag = inject(BagService);
+    private readonly router = inject(Router);
     private readonly shippingApi = inject(ShippingApi);
     private readonly destroyRef = inject(DestroyRef);
 
@@ -45,6 +46,12 @@ export class BagPage {
 
     constructor() {
         inject(Title).setTitle(`Your bag | ${BRAND.name}`);
+    }
+
+    goToCheckout(): void {
+        const shipping = this.shipping();
+        if (!shipping || this.checking() || this.bag.lines().length === 0) return;
+        void this.router.navigate(['/checkout'], { state: { checkedPincode: shipping.pincode } });
     }
 
     change(line: BagLine, delta: number): void {

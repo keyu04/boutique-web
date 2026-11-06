@@ -99,6 +99,11 @@ export class CheckoutPage {
       }),
       takeUntilDestroyed(),
     ).subscribe(estimate => this.shipping.set(estimate));
+
+    const checkedPincode = history.state?.checkedPincode;
+    if (typeof checkedPincode === 'string' && PINCODE.test(checkedPincode)) {
+      this.form.controls.pincode.setValue(checkedPincode);
+    }
   }
 
   invalid(field: Field): boolean {

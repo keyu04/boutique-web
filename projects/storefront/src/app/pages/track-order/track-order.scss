@@ -1,0 +1,35 @@
+:host { display: block; }
+.wrap { max-width: 640px; margin: 0 auto; padding: 48px 16px 80px; }
+h1 { margin: 0 0 8px; font-family: var(--font-display); font-weight: 500; font-size: 2.2rem; color: var(--burgundy); }
+h2 { margin: 0; font-family: var(--font-display); font-weight: 500; font-size: 1.6rem; color: var(--burgundy); }
+h3 { margin: 0 0 10px; font-family: var(--font-display); font-weight: 500; font-size: 1.1rem; }
+.lead, .meta, .muted { color: var(--muted); }
+.lead { margin: 0 0 28px; }
+
+.lookup { display: grid; gap: 16px; margin-bottom: 28px; }
+.field label { display: block; margin-bottom: 6px; font-size: 0.8rem; text-transform: uppercase; letter-spacing: 0.12em; }
+.field input { width: 100%; box-sizing: border-box; height: 48px; padding: 0 20px; border: 1px solid var(--burgundy); border-radius: 999px; background: #fff; color: var(--burgundy); font: inherit; }
+.field input:focus-visible, .btn:focus-visible { outline: 3px solid var(--burgundy); outline-offset: 2px; }
+.field-error { margin: 6px 0 0 20px; font-size: 0.85rem; font-weight: 600; }
+.error { padding: 14px 20px; background: var(--blush); border-radius: 8px; font-weight: 600; }
+
+.result { margin-top: 8px; }
+.meta { margin: 4px 0 24px; }
+.steps { list-style: none; margin: 0 0 24px; padding: 0; }
+.steps li { position: relative; display: grid; grid-template-columns: 24px 1fr auto; gap: 12px; align-items: center; padding: 10px 0; color: var(--muted); }
+.steps li:not(:last-child)::before { content: ''; position: absolute; left: 11px; top: 30px; bottom: -10px; width: 2px; background: var(--blush); }
+.dot { width: 14px; height: 14px; margin-left: 5px; border-radius: 50%; border: 2px solid var(--muted); background: #fff; }
+.steps li.done, .steps li.current { color: var(--burgundy); }
+.steps li.done .dot { background: var(--burgundy); border-color: var(--burgundy); }
+.steps li.current .dot { background: var(--burgundy); border-color: var(--burgundy); box-shadow: 0 0 0 4px var(--blush); }
+.steps li.current .label { font-weight: 700; }
+.when { font-size: 0.85rem; color: var(--muted); }
+.cancelled { padding: 14px 20px; border: 1px dashed var(--muted); border-radius: 8px; }
+
+.box { margin-top: 20px; padding: 20px 22px; background: #fff; border-radius: 12px; }
+.box p { margin: 0 0 6px; }
+.items { list-style: none; margin: 0 0 12px; padding: 0; }
+.items li { padding: 4px 0; }
+.total { margin-top: 8px; }
+.cod { margin-top: 10px; font-weight: 600; }
+.sr { position: absolute; width: 1px; height: 1px; overflow: hidden; clip-path: inset(50%); white-space: nowrap; }

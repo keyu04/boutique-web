@@ -94,10 +94,11 @@
           <p class="note">Enter your pincode to see shipping and delivery time.</p>
         }
 
-        <a class="btn checkout" routerLink="/checkout">
+        <button type="button" class="btn checkout" [disabled]="!shipping() || checking()"
+                (click)="goToCheckout()">
           <span>Checkout</span>
           <svg viewBox="0 0 20 20" aria-hidden="true"><path d="M3 10h13M10 4l6 6-6 6" /></svg>
-        </a>
+        </button>
       </aside>
     </div>
   }

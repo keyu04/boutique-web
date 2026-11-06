@@ -1,0 +1,88 @@
+<app-site-header />
+
+<main class="wrap">
+  <h1>Track your order</h1>
+  <p class="lead">Enter your order number and the phone number you used at checkout.</p>
+
+  <form class="lookup" [formGroup]="form" (ngSubmit)="submit()" novalidate>
+    <div class="field">
+      <label for="orderNumber">Order number</label>
+      <input id="orderNumber" type="text" formControlName="orderNumber" autocomplete="off"
+             placeholder="SJ-2026-123456" [attr.aria-invalid]="form.controls.orderNumber.invalid && form.controls.orderNumber.touched" />
+      @if (form.controls.orderNumber.touched && form.controls.orderNumber.invalid) {
+        <p class="field-error">Enter your order number.</p>
+      }
+    </div>
+    <div class="field">
+      <label for="phone">Phone number</label>
+      <input id="phone" type="tel" formControlName="phone" autocomplete="tel" inputmode="tel"
+             [attr.aria-invalid]="form.controls.phone.invalid && form.controls.phone.touched" />
+      @if (form.controls.phone.touched && form.controls.phone.invalid) {
+        <p class="field-error">Enter the 10-digit phone number from your order.</p>
+      }
+    </div>
+    <button type="submit" class="btn" [disabled]="loading()">{{ loading() ? 'Looking up…' : 'Track order' }}</button>
+  </form>
+
+  <div aria-live="polite">
+    @if (error(); as e) {
+      <p class="error" role="alert">{{ e }}</p>
+    }
+
+    @if (order(); as o) {
+      <section class="result" aria-labelledby="result-title">
+        <h2 id="result-title">{{ o.orderNumber }}</h2>
+        <p class="meta">Placed {{ o.placedAt | date: 'd MMM y, h:mm a' }}</p>
+
+        @if (o.status === 'Cancelled') {
+          <p class="cancelled">
+            This order was cancelled@if (cancelledAt(); as c) { on {{ c | date: 'd MMM y' }}}.
+            If you didn't expect this, please contact us.
+          </p>
+        } @else {
+          <ol class="steps" aria-label="Order progress">
+            @for (s of steps(); track s.label) {
+              <li [class]="s.state" [attr.aria-current]="s.state === 'current' ? 'step' : null">
+                <span class="dot" aria-hidden="true"></span>
+                <span class="label">
+                  {{ s.label }}
+                  <span class="sr">{{ s.state === 'done' ? '(completed)' : s.state === 'current' ? '(current step)' : '(not yet)' }}</span>
+                </span>
+                @if (s.at) { <span class="when">{{ s.at | date: 'd MMM, h:mm a' }}</span> }
+              </li>
+            }
+          </ol>
+        }
+
+        @if (o.courierName || o.trackingNumber) {
+          <div class="box">
+            <h3>Delivery</h3>
+            @if (o.courierName) { <p>Courier: <strong>{{ o.courierName }}</strong></p> }
+            @if (o.trackingNumber) {
+              <p>
+                Tracking number: <strong>{{ o.trackingNumber }}</strong>
+                <button type="button" class="btn btn-ghost btn-small" (click)="copy(o.trackingNumber)">
+                  {{ copied() ? 'Copied' : 'Copy' }}
+                </button>
+              </p>
+            }
+          </div>
+        }
+
+        <div class="box">
+          <h3>Items</h3>
+          <ul class="items">
+            @for (i of o.items; track $index) {
+              <li>{{ i.productName }} <span class="muted">(size {{ i.size }}) × {{ i.quantity }}</span></li>
+            }
+          </ul>
+          <p class="total">Total <strong>{{ o.total | currency: 'INR' : 'symbol' : '1.0-0' }}</strong>
+            <span class="muted"> · {{ paymentLabel(o.paymentMethod) }}</span></p>
+          @if (codDue()) {
+            <p class="cod">Please keep {{ o.total | currency: 'INR' : 'symbol' : '1.0-0' }} ready to pay in cash when your order arrives.</p>
+          }
+        </div>
+      </section>
+    }
+  </div>
+</main>

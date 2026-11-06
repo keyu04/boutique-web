@@ -7,3 +7,5 @@ export * from './api/shipping-api';
 export * from './src/model/orders';
 export * from './api/orders-api';
 export * from './src/util/api-error';
+export * from './src/model/tracking';
+export * from './api/tracking-api';
