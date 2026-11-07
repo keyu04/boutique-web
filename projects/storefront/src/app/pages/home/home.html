@@ -14,7 +14,7 @@
     }
   </section>
 
-  <section id="collection" class="collection">
+  <section #collectionSection id="collection" class="collection">
     <div class="collection-inner">
       <div class="collection-heading">
         <div class="collection-copy">
@@ -22,52 +22,61 @@
           <h2>The Collection</h2>
           <p>Explore our curated selection of seasonless essentials.</p>
         </div>
-        <nav class="category-filters" aria-label="Browse collection categories">
+        <div class="category-slot" [class.floating]="categoriesFloating()">
+          <nav #categoryFilters class="category-filters" [class.floating]="categoriesFloating()"
+               [class.header-hidden]="categoriesHeaderHidden()"
+               [class.header-revealing]="categoriesHeaderRevealing()"
+               aria-label="Browse collection categories">
           <button type="button" class="category-button"
                   [class.selected]="selectedCategory() === null"
                   [attr.aria-pressed]="selectedCategory() === null"
                   (click)="selectAllCategories()">
-            <svg class="category-icon" viewBox="0 0 20 20" aria-hidden="true">
-              <rect x="3" y="3" width="5" height="5" rx="0.5" />
-              <rect x="12" y="3" width="5" height="5" rx="0.5" />
-              <rect x="3" y="12" width="5" height="5" rx="0.5" />
-              <rect x="12" y="12" width="5" height="5" rx="0.5" />
-            </svg>
-            <span>All</span>
+            <span class="category-circle">
+              <svg class="category-icon" viewBox="0 0 20 20" aria-hidden="true">
+                <rect x="3" y="3" width="5" height="5" rx="0.5" />
+                <rect x="12" y="3" width="5" height="5" rx="0.5" />
+                <rect x="3" y="12" width="5" height="5" rx="0.5" />
+                <rect x="12" y="12" width="5" height="5" rx="0.5" />
+              </svg>
+            </span>
+            <span class="category-name">All</span>
           </button>
           @for (category of categories(); track category.slug) {
             <button type="button" class="category-button"
                     [class.selected]="selectedCategory() === category.slug"
                     [attr.aria-pressed]="selectedCategory() === category.slug"
                     (click)="selectCategory(category)">
-              <svg class="category-icon" viewBox="0 0 20 20" aria-hidden="true">
-                @switch (category.name) {
-                  @case ('Dresses') {
-                    <path d="M8 2h4l1 3 3 2-2 3-1-1 1 9H6l1-9-1 1-2-3 3-2 1-3Z" />
-                    <path d="M8 2c0 1 1 2 2 2s2-1 2-2M7 9h6" />
+              <span class="category-circle">
+                <svg class="category-icon" viewBox="0 0 20 20" aria-hidden="true">
+                  @switch (category.name) {
+                    @case ('Dresses') {
+                      <path d="M8 2h4l1 3 3 2-2 3-1-1 1 9H6l1-9-1 1-2-3 3-2 1-3Z" />
+                      <path d="M8 2c0 1 1 2 2 2s2-1 2-2M7 9h6" />
+                    }
+                    @case ('Kurta Sets') {
+                      <path d="m7 3 3 2 3-2 3 2-2 3-1-1 1 10H6L7 7 6 8 4 5l3-2Z" />
+                      <path d="M10 5v12M8 8h4" />
+                    }
+                    @case ('Kurtis') {
+                      <path d="m7 3 3 2 3-2 3 2-2 3-1-1 1 10H6L7 7 6 8 4 5l3-2Z" />
+                      <path d="M8 5 7 9m5-4 1 4" />
+                    }
+                    @case ('Co-ords') {
+                      <path d="m5 3 3-1 2 2 2-2 3 1 2 4-3 1-1-2v4H7V6L6 8 3 7l2-4Z" />
+                      <path d="M7 11h6l1 7H6l1-7Zm3 0v7" />
+                    }
+                    @case ('Tops') {
+                      <path d="m7 3 3 2 3-2 3 2-2 3-1-1v10H7V7L6 8 4 5l3-2Z" />
+                      <path d="M8 5h4" />
+                    }
                   }
-                  @case ('Kurta Sets') {
-                    <path d="m7 3 3 2 3-2 3 2-2 3-1-1 1 10H6L7 7 6 8 4 5l3-2Z" />
-                    <path d="M10 5v12M8 8h4" />
-                  }
-                  @case ('Kurtis') {
-                    <path d="m7 3 3 2 3-2 3 2-2 3-1-1 1 10H6L7 7 6 8 4 5l3-2Z" />
-                    <path d="M8 5 7 9m5-4 1 4" />
-                  }
-                  @case ('Co-ords') {
-                    <path d="m5 3 3-1 2 2 2-2 3 1 2 4-3 1-1-2v4H7V6L6 8 3 7l2-4Z" />
-                    <path d="M7 11h6l1 7H6l1-7Zm3 0v7" />
-                  }
-                  @case ('Tops') {
-                    <path d="m7 3 3 2 3-2 3 2-2 3-1-1v10H7V7L6 8 4 5l3-2Z" />
-                    <path d="M8 5h4" />
-                  }
-                }
-              </svg>
-              <span>{{ category.name }}</span>
+                </svg>
+              </span>
+              <span class="category-name">{{ category.name }}</span>
             </button>
           }
-        </nav>
+          </nav>
+        </div>
       </div>
 
       @if (loading() && products().length === 0) {
@@ -80,7 +89,7 @@
       @if (error(); as message) {
         <p class="error" role="alert">{{ message }}</p>
       }
-      <div class="grid" [class.updating]="loading()" [attr.aria-busy]="loading()">
+      <div #productGrid class="grid" [class.updating]="loading()" [attr.aria-busy]="loading()">
         @for (p of products(); track p.id) {
         <article class="item">
           <div class="product-image">

@@ -1,5 +1,5 @@
 import { CurrencyPipe } from '@angular/common';
-import { Component, DestroyRef, inject, signal } from '@angular/core';
+import { Component, DestroyRef, ElementRef, HostListener, ViewChild, inject, signal } from '@angular/core';
 import { takeUntilDestroyed } from '@angular/core/rxjs-interop';
 import { CategoriesApi, Category, ProductsApi, ProductDetail, ProductImage, ProductSize, ProductSummary, BRAND } from '@shared';
 import { RouterLink } from '@angular/router';
@@ -19,6 +19,12 @@ export class Home {
   private readonly api = inject(ProductsApi);
   private readonly categoriesApi = inject(CategoriesApi);
   private readonly categorySelection = new Subject<string | null>();
+  private headerRevealTimer: ReturnType<typeof setTimeout> | null = null;
+
+  @ViewChild('collectionSection') private collectionSection?: ElementRef<HTMLElement>;
+  @ViewChild('categoryFilters') private categoryFilters?: ElementRef<HTMLElement>;
+  @ViewChild('productGrid') private productGrid?: ElementRef<HTMLElement>;
+  @ViewChild(SiteHeader, { read: ElementRef }) private siteHeader?: ElementRef<HTMLElement>;
 
   readonly brand = BRAND;
   readonly bag = inject(BagService);
@@ -36,8 +42,15 @@ export class Home {
   readonly quickAddMessageProductId = signal<number | null>(null);
   readonly quickAddMessage = signal<string | null>(null);
   readonly quickAddSuccess = signal(false);
+  readonly categoriesFloating = signal(false);
+  readonly categoriesHeaderHidden = signal(false);
+  readonly categoriesHeaderRevealing = signal(false);
 
   constructor() {
+    this.destroyRef.onDestroy(() => {
+      if (this.headerRevealTimer !== null) clearTimeout(this.headerRevealTimer);
+    });
+
     this.categorySelection.pipe(
     tap(() => {
       this.loading.set(true);
@@ -79,14 +92,69 @@ export class Home {
     });
   }
 
+  @HostListener('window:scroll')
+  @HostListener('window:resize')
+  @HostListener('window:site-header-visibility-change')
+  updateFloatingCategories(): void {
+    const section = this.collectionSection?.nativeElement;
+    const filters = this.categoryFilters?.nativeElement;
+    const slot = filters?.parentElement;
+    const header = this.siteHeader?.nativeElement;
+    if (!section || !filters || !slot || !header) return;
+
+    const headerHeight = header.offsetHeight;
+    const headerHidden = header.classList.contains('hidden');
+    const categoryTop = headerHidden ? 0 : headerHeight / 2;
+    const wasHeaderHidden = this.categoriesHeaderHidden();
+    const shouldFloat =
+      !headerHidden &&
+      slot.getBoundingClientRect().top <= headerHeight + 1 &&
+      section.getBoundingClientRect().bottom > categoryTop + filters.offsetHeight;
+
+    if (headerHidden) {
+      if (this.headerRevealTimer !== null) {
+        clearTimeout(this.headerRevealTimer);
+        this.headerRevealTimer = null;
+      }
+      this.categoriesHeaderRevealing.set(false);
+    } else if (wasHeaderHidden) {
+      if (this.headerRevealTimer !== null) clearTimeout(this.headerRevealTimer);
+      this.categoriesHeaderRevealing.set(true);
+      const delay = window.matchMedia('(prefers-reduced-motion: reduce)').matches ? 0 : 240;
+      this.headerRevealTimer = setTimeout(() => {
+        this.categoriesHeaderRevealing.set(false);
+        this.headerRevealTimer = null;
+      }, delay);
+    }
+
+    filters.style.setProperty('--category-top', `${categoryTop}px`);
+    slot.style.setProperty('--category-height', `${filters.offsetHeight}px`);
+    this.categoriesHeaderHidden.set(headerHidden);
+    this.categoriesFloating.set(shouldFloat);
+  }
+
   selectCategory(category: Category): void {
+    const selectedFromHeader = this.categoriesFloating();
     this.selectedCategory.set(category.slug);
     this.categorySelection.next(category.slug);
+    if (selectedFromHeader) this.scrollProductsBelowHeader();
   }
 
   selectAllCategories(): void {
+    const selectedFromHeader = this.categoriesFloating();
     this.selectedCategory.set(null);
     this.categorySelection.next(null);
+    if (selectedFromHeader) this.scrollProductsBelowHeader();
+  }
+
+  private scrollProductsBelowHeader(): void {
+    const grid = this.productGrid?.nativeElement;
+    const header = this.siteHeader?.nativeElement;
+    if (!grid || !header) return;
+
+    const top = grid.getBoundingClientRect().top + window.scrollY - header.offsetHeight;
+    const behavior = window.matchMedia('(prefers-reduced-motion: reduce)').matches ? 'auto' : 'smooth';
+    window.scrollTo({ top: Math.max(0, top), behavior });
   }
 
   imageFor(product: ProductSummary): string | null {

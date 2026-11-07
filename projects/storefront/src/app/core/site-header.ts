@@ -1,4 +1,4 @@
-import { Component, Input, inject } from '@angular/core';
+import { Component, DestroyRef, ElementRef, HostListener, Input, inject } from '@angular/core';
 import { RouterLink } from '@angular/router';
 import { BRAND } from '@shared';
 import { BagService } from './bag.service';
@@ -39,7 +39,9 @@ import { BagService } from './bag.service';
     </header>
   `,
   styles: `
-    :host { display: block; border-bottom: 1px solid var(--blush, #ecd5d3); }
+    :host { position: sticky; top: 0; z-index: 100; display: block; border-bottom: 1px solid var(--blush, #ecd5d3);
+      background: var(--cream, #f8f1e3); transition: transform 240ms ease; }
+    :host(.hidden) { transform: translateY(-100%); }
     .topbar { width: calc(100% - 48px); max-width: 1200px; margin: 0 auto; padding: 28px 0;
       display: flex; align-items: center; justify-content: space-between; }
     .brand-lockup { display: inline-flex; align-items: center; gap: 14px; color: var(--burgundy, #5c1a2e);
@@ -72,6 +74,9 @@ import { BagService } from './bag.service';
     .bag-link:hover svg { transform: translateY(-1px); }
     .bag-link svg { transition: transform 150ms ease; }
     .bag-link:focus-visible { outline: 2px solid var(--burgundy, #5c1a2e); outline-offset: 4px; }
+    @media (prefers-reduced-motion: reduce) {
+      :host { transition: none; }
+    }
     @media (max-width: 600px) {
       .topbar { width: calc(100% - 36px); padding: 14px 0; }
       .brand-mark { width: 44px; height: 44px; }
@@ -80,7 +85,45 @@ import { BagService } from './bag.service';
   `,
 })
 export class SiteHeader {
+  private readonly host = inject(ElementRef<HTMLElement>).nativeElement;
+  private readonly destroyRef = inject(DestroyRef);
+  private readonly idleDelay = 3500;
+  private idleTimer: ReturnType<typeof setTimeout> | null = null;
+
   @Input() trackingPage = false;
   readonly brand = BRAND;
   readonly bag = inject(BagService);
+
+  constructor() {
+    this.destroyRef.onDestroy(() => this.clearIdleTimer());
+  }
+
+  @HostListener('window:scroll')
+  @HostListener('window:pointermove')
+  @HostListener('window:touchstart')
+  @HostListener('window:keydown')
+  showWhileActive(): void {
+    this.classListHidden(false);
+    this.clearIdleTimer();
+
+    if (window.scrollY > 80) {
+      this.idleTimer = setTimeout(() => {
+        this.idleTimer = null;
+        if (window.scrollY > 80) this.classListHidden(true);
+      }, this.idleDelay);
+    }
+  }
+
+  private classListHidden(hidden: boolean): void {
+    if (this.host.classList.contains('hidden') === hidden) return;
+    this.host.classList.toggle('hidden', hidden);
+    window.dispatchEvent(new Event('site-header-visibility-change'));
+  }
+
+  private clearIdleTimer(): void {
+    if (this.idleTimer !== null) {
+      clearTimeout(this.idleTimer);
+      this.idleTimer = null;
+    }
+  }
 }
