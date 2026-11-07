@@ -1,4 +1,4 @@
-import { Component, inject } from '@angular/core';
+import { Component, Input, inject } from '@angular/core';
 import { RouterLink } from '@angular/router';
 import { BRAND } from '@shared';
 import { BagService } from './bag.service';
@@ -12,13 +12,30 @@ import { BagService } from './bag.service';
         <img class="brand-mark" src="/assets/sahjish-monogram.png" alt="" />
         <span class="wordmark">{{ brand.name }}</span>
       </a>
-      <a class="bag-link" routerLink="/bag" [attr.aria-label]="'Bag, ' + bag.count() + (bag.count() === 1 ? ' item' : ' items')">
-        <svg viewBox="0 0 36 36" aria-hidden="true">
-          <path d="M7 13h22l2 19H5l2-19Z" />
-          <path d="M13 13V9a5 5 0 0 1 10 0v4" />
-        </svg>
-        <span class="count">{{ bag.count() }}</span>
-      </a>
+      <nav class="header-actions" aria-label="Order links">
+        @if (trackingPage) {
+          <a class="continue-link" routerLink="/">Continue shopping
+            <svg viewBox="0 0 20 20" aria-hidden="true"><path d="M3 10h13M10 4l6 6-6 6" /></svg>
+          </a>
+        } @else {
+          <a class="track-link" routerLink="/track" aria-label="Track your order" title="Track your order">
+            <svg viewBox="0 0 40 40" aria-hidden="true">
+              <path d="M4 10 20 2l16 8-16 8L4 10Z" />
+              <path d="M4 10v19l16 8 7-3.5M20 18v19M36 10v10" />
+              <path d="m12 6 16 8M12 6v8" />
+              <path d="M31 19c-4.4 0-8 3.6-8 8 0 5.2 8 12 8 12s8-6.8 8-12c0-4.4-3.6-8-8-8Z" />
+              <circle cx="31" cy="27" r="2.5" />
+            </svg>
+          </a>
+        }
+        <a class="bag-link" routerLink="/bag" [attr.aria-label]="'Bag, ' + bag.count() + (bag.count() === 1 ? ' item' : ' items')">
+          <svg viewBox="0 0 36 36" aria-hidden="true">
+            <path d="M7 13h22l2 19H5l2-19Z" />
+            <path d="M13 13V9a5 5 0 0 1 10 0v4" />
+          </svg>
+          <span class="count">{{ bag.count() }}</span>
+        </a>
+      </nav>
     </header>
   `,
   styles: `
@@ -31,6 +48,20 @@ import { BagService } from './bag.service';
     .wordmark { font-family: var(--font-display, 'Bodoni Moda', serif); font-size: 1.6rem;
       letter-spacing: 0.35em; text-transform: uppercase; text-decoration: none;
       color: var(--burgundy, #5c1a2e); }
+    .header-actions { display: flex; align-items: center; gap: 16px; }
+    .continue-link { display: inline-flex; align-items: center; gap: 8px; color: var(--burgundy, #5c1a2e);
+      font-size: 0.9rem; text-decoration: none; white-space: nowrap; }
+    .continue-link svg { width: 16px; height: 16px; fill: none; stroke: currentColor; stroke-width: 1.5;
+      stroke-linecap: round; stroke-linejoin: round; }
+    .continue-link:hover { text-decoration: underline; text-underline-offset: 4px; }
+    .continue-link:focus-visible { outline: 2px solid var(--burgundy, #5c1a2e); outline-offset: 4px; }
+    .track-link { display: inline-flex; width: 36px; height: 36px; align-items: center;
+      justify-content: center; color: var(--burgundy, #5c1a2e); text-decoration: none; }
+    .track-link svg { width: 26px; height: 26px; fill: none; stroke: currentColor; stroke-width: 2.3;
+      stroke-linecap: round; stroke-linejoin: round; }
+    .track-link:hover svg { transform: translateY(-1px); }
+    .track-link svg { transition: transform 150ms ease; }
+    .track-link:focus-visible { outline: 2px solid var(--burgundy, #5c1a2e); outline-offset: 4px; }
     .bag-link { position: relative; display: inline-flex; width: 36px; height: 36px; align-items: center;
       justify-content: center; color: var(--burgundy, #5c1a2e); text-decoration: none; }
     .bag-link svg { width: 26px; height: 26px; fill: none; stroke: currentColor; stroke-width: 2;
@@ -49,6 +80,7 @@ import { BagService } from './bag.service';
   `,
 })
 export class SiteHeader {
+  @Input() trackingPage = false;
   readonly brand = BRAND;
   readonly bag = inject(BagService);
 }

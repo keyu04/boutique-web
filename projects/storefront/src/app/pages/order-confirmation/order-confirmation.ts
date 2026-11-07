@@ -4,10 +4,11 @@ import { Title } from '@angular/platform-browser';
 import { ActivatedRoute, RouterLink } from '@angular/router';
 import { BRAND, OrderResult } from '@shared';
 import { SiteHeader } from '../../core/site-header';
+import { SiteFooter } from '../../core/site-footer';
 
 @Component({
   selector: 'app-order-confirmation',
-  imports: [CurrencyPipe, RouterLink, SiteHeader],
+  imports: [CurrencyPipe, RouterLink, SiteHeader, SiteFooter],
   templateUrl: './order-confirmation.html',
   styleUrl: './order-confirmation.scss',
 })

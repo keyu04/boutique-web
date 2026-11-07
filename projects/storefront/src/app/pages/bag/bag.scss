@@ -4,8 +4,8 @@ $muted: var(--muted, #7a5a63);
 $display: var(--font-display, 'Bodoni Moda', serif);
 $line: #e4ddd4;
 
-:host { display: block; color: $burgundy; }
-.page { width: calc(100% - 48px); max-width: 1024px; margin: 0 auto; padding: 34px 0 80px; }
+:host { min-height: 100vh; display: flex; flex-direction: column; color: $burgundy; }
+.page { width: calc(100% - 48px); max-width: 1024px; margin: 0 auto; padding: 34px 0 80px; flex: 1; }
 .page-title { display: flex; align-items: baseline; gap: 14px; margin-bottom: 28px; }
 h1 { font-family: $display; font-weight: 500; font-size: clamp(2.5rem, 4vw, 3rem); line-height: 1.1; margin: 0; }
 .page-title > span { color: $muted; font-size: 0.9rem; }

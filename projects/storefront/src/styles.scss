@@ -10,6 +10,10 @@
   --font-body: 'Hanken Grotesk', system-ui, sans-serif;
 }
 
+html {
+  scrollbar-gutter: stable;
+}
+
 *,
 *::before,
 *::after {

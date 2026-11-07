@@ -1,27 +1,76 @@
 <app-site-header />
 
 <main class="page">
-  <h1>Thank you, your order is placed</h1>
-  <p class="number">Order number <strong>{{ orderNumber }}</strong></p>
-  <p class="hint">Please keep this number. You'll need it, with your phone number, to track your order or to contact us.</p>
+  <section class="intro" aria-labelledby="confirmation-title">
+    <p class="status">
+      <svg viewBox="0 0 20 20" aria-hidden="true"><circle cx="10" cy="10" r="9" /><path d="m6 10 2.5 2.5L14 7" /></svg>
+      Order confirmed
+    </p>
+    <h1 id="confirmation-title">Thank you, your order is placed.</h1>
+    <p class="hint">Your order is confirmed. Here are your order details and what to do next.</p>
+  </section>
 
-  @if (order; as o) {
-    <section class="card" aria-label="Order details">
-      <p class="row"><span>Subtotal</span><strong>{{ o.subtotal | currency: 'INR' : 'symbol' : '1.0-0' }}</strong></p>
-      <p class="row">
-        <span>Shipping</span>
-        <strong>{{ o.shippingCharge === 0 ? 'Free' : (o.shippingCharge | currency: 'INR' : 'symbol' : '1.0-0') }}</strong>
-      </p>
-      <p class="row total"><span>Total</span><strong>{{ o.total | currency: 'INR' : 'symbol' : '1.0-0' }}</strong></p>
+  <div class="order-strip">
+    <span class="order-label">Order number</span>
+    <strong class="order-number">{{ orderNumber }}</strong>
+    @if (order; as o) {
+      <span class="payment-method">{{ o.paymentMethod === 'Cod' ? 'Cash on delivery' : 'Paid online' }}</span>
+    }
+  </div>
 
-      @if (o.paymentMethod === 'Cod') {
-        <p class="cod">Please keep {{ o.total | currency: 'INR' : 'symbol' : '1.0-0' }} ready. You'll pay in cash when your order arrives.</p>
+  <div class="details-grid">
+    <section class="glance" aria-labelledby="glance-title">
+      <h2 id="glance-title">Your order at a glance</h2>
+      @if (order; as o) {
+        <div class="totals">
+          <p class="row"><span>Subtotal</span><strong>{{ o.subtotal | currency: 'INR' : 'symbol' : '1.0-0' }}</strong></p>
+          <p class="row">
+            <span>Shipping</span>
+            <strong>{{ o.shippingCharge === 0 ? 'Free' : (o.shippingCharge | currency: 'INR' : 'symbol' : '1.0-0') }}</strong>
+          </p>
+          <p class="row total"><span>Total</span><strong>{{ o.total | currency: 'INR' : 'symbol' : '1.0-0' }}</strong></p>
+        </div>
+
+        @if (o.paymentMethod === 'Cod') {
+          <div class="cod-card">
+            <div class="cod-label">
+              <span>Cash due on delivery</span>
+              <svg viewBox="0 0 20 20" aria-hidden="true"><rect x="2" y="5" width="16" height="10" rx="1" /><circle cx="10" cy="10" r="2" /></svg>
+            </div>
+            <p class="cod-amount">{{ o.total | currency: 'INR' : 'symbol' : '1.0-0' }}</p>
+            <p class="cod-note">Please keep {{ o.total | currency: 'INR' : 'symbol' : '1.0-0' }} ready. You’ll pay in cash when your order arrives.</p>
+          </div>
+        }
+      } @else {
+        <p class="details-unavailable">Your order has been placed. Use your order number and checkout phone number to view its latest status.</p>
       }
     </section>
-  }
 
-  <div class="actions">
-    <a class="btn" routerLink="/track" [queryParams]="{ order: orderNumber }">Track this order</a>
-    <a class="btn" routerLink="/">Continue shopping</a>
+    <section class="next-steps" aria-labelledby="next-title">
+      <h2 id="next-title">What happens next</h2>
+      <div class="step">
+        <svg viewBox="0 0 20 20" aria-hidden="true"><path d="M5 3h10v15l-5-3-5 3V3Z" /></svg>
+        <div>
+          <h3>Keep your order number</h3>
+          <p>You’ll need it, along with your phone number, to track your order or contact us.</p>
+        </div>
+      </div>
+      <div class="step">
+        <svg viewBox="0 0 20 20" aria-hidden="true"><path d="m2 6 8-4 8 4-8 4-8-4Z" /><path d="M2 6v9l8 4 3-1.5M10 10v9m8-13v5" /><path d="M15.5 10.5a3 3 0 1 0 0 6c1.8 0 3-3 3-3s-1.2-3-3-3Z" /></svg>
+        <div>
+          <h3>Follow your order</h3>
+          <p>Use Track this order to check your order’s progress.</p>
+        </div>
+      </div>
+      <div class="actions">
+        <a class="btn btn-primary" routerLink="/track" [queryParams]="{ order: orderNumber }">
+          Track this order
+          <svg viewBox="0 0 20 20" aria-hidden="true"><path d="M3 10h13M10 4l6 6-6 6" /></svg>
+        </a>
+        <a class="btn btn-secondary" routerLink="/">Continue shopping</a>
+      </div>
+    </section>
   </div>
 </main>
+
+<app-site-footer />

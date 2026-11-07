@@ -7,6 +7,7 @@ import { Title } from '@angular/platform-browser';
 import { ActivatedRoute } from '@angular/router';
 import { BRAND, TrackedOrder, TrackingApi, apiMessage } from '@shared';
 import { SiteHeader } from '../../core/site-header';
+import { SiteFooter } from '../../core/site-footer';
 
 const STEPS = [
   { status: 'Pending', label: 'Order placed' },
@@ -24,7 +25,7 @@ function phoneValidator(control: AbstractControl): ValidationErrors | null {
 
 @Component({
   selector: 'app-track-order',
-  imports: [ReactiveFormsModule, CurrencyPipe, DatePipe, SiteHeader],
+  imports: [ReactiveFormsModule, CurrencyPipe, DatePipe, SiteHeader, SiteFooter],
   templateUrl: './track-order.html',
   styleUrl: './track-order.scss',
 })
