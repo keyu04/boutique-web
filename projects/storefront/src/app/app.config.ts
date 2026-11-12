@@ -8,7 +8,10 @@ import { AuthService } from '../../../admin/src/app/core/auth.service';
 export const appConfig: ApplicationConfig = {
   providers: [
     provideBrowserGlobalErrorListeners(),
-    provideRouter(routes, withInMemoryScrolling({ scrollPositionRestoration: 'top' })),
+    provideRouter(routes, withInMemoryScrolling({
+      anchorScrolling: 'enabled',
+      scrollPositionRestoration: 'top',
+    })),
     provideHttpClient(),
     { provide: API_BASE_URL, useValue: 'https://boutique-backend-rqz2.onrender.com/api' },
     provideAppInitializer(() => inject(AuthService).restore()),
