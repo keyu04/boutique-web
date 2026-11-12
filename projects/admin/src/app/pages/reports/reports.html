@@ -39,20 +39,25 @@
 @if (error(); as e) { <p class="err" role="alert">{{ e }}</p> }
 
 @if (data(); as d) {
-  <div class="tiles" [class.loading]="loading()" [attr.aria-busy]="loading()">
+    <div class="tiles" [class.loading]="loading()" [attr.aria-busy]="loading()">
     <article class="tile"><p class="label">Orders</p><p class="value">{{ d.orderCount }}</p></article>
     <article class="tile"><p class="label">Item revenue</p><p class="value">{{ d.itemRevenue | currency: 'INR' : 'symbol' : '1.0-0' }}</p></article>
     <article class="tile"><p class="label">Shipping collected</p><p class="value">{{ d.shippingCollected | currency: 'INR' : 'symbol' : '1.0-0' }}</p></article>
     <article class="tile"><p class="label">Cost of goods</p><p class="value">{{ d.cost | currency: 'INR' : 'symbol' : '1.0-0' }}</p></article>
+    <article class="tile">
+      <p class="label">Shipping paid</p>
+      <p class="value">{{ d.shippingCost | currency: 'INR' : 'symbol' : '1.0-0' }}</p>
+      <p class="hint">Collected minus paid: {{ shippingNet() | currency: 'INR' : 'symbol' : '1.0-0' }}</p>
+    </article>
     <article class="tile margin-tile">
-      <p class="label">Margin</p>
-      <p class="value">{{ d.margin | currency: 'INR' : 'symbol' : '1.0-0' }}</p>
-      <p class="sub">{{ d.marginPercent | number: '1.0-1' }}% of item revenue</p>
+      <p class="label">Net profit</p>
+      <p class="value">{{ d.netMargin | currency: 'INR' : 'symbol' : '1.0-0' }}</p>
+      <p class="sub">{{ d.netMarginPercent | number: '1.0-1' }}% after shipping · items {{ d.margin | currency: 'INR' : 'symbol' : '1.0-0' }}</p>
     </article>
   </div>
   <p class="report-note">
     <span class="info-icon" aria-hidden="true">i</span>
-    <span>Revenue, cost and margin include Confirmed, Packed, Shipped and Delivered orders. Pending and Cancelled orders are excluded. Period: {{ d.from }} to {{ d.to }}.</span>
+    <span>Revenue, cost and profit include Confirmed, Packed, Shipped and Delivered orders. Pending and Cancelled orders are excluded. Shipping paid is the courier cost saved when each order was placed, so orders from before it was tracked show ₹0. Period: {{ d.from }} to {{ d.to }}.</span>
   </p>
 
   <section class="status-card" aria-labelledby="status-heading">

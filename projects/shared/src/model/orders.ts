@@ -7,6 +7,7 @@ export interface CreateOrderRequest {
   state: string;
   pincode: string;
   paymentMethod: 'Prepaid' | 'Cod';
+  expectedShippingCharge?: number;
 }
 
 export interface OrderResult {

@@ -55,6 +55,11 @@ export class ReportsPage {
       counted: COUNTED.includes(status),
     }));
   });
+  /** Shipping we collected minus what the couriers charge us (negative means we subsidise delivery). */
+  readonly shippingNet = computed(() => {
+    const d = this.data();
+    return d ? d.shippingCollected - d.shippingCost : 0;
+  });
 
   constructor() {
     inject(Title).setTitle(`Reports | ${BRAND.name} Admin`);

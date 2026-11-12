@@ -66,4 +66,7 @@ export interface ReportSummary {
   margin: number;
   marginPercent: number;
   ordersByStatus: Record<string, number>;
+  shippingCost: number;
+  netMargin: number;
+  netMarginPercent: number;
 }
