@@ -11,7 +11,7 @@ export const appConfig: ApplicationConfig = {
     provideBrowserGlobalErrorListeners(),
     provideRouter(routes, withPreloading(PreloadAllModules)),
     provideHttpClient(withInterceptors([authInterceptor])),
-    { provide: API_BASE_URL, useValue: 'https://boutique-npde.onrender.com/api' },
+    { provide: API_BASE_URL, useValue: 'https://boutique-web-vuf0.onrender.com/api' },
     provideAppInitializer(() => inject(AuthService).restore()),
   ],
 };
