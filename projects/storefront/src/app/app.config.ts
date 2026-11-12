@@ -10,7 +10,7 @@ export const appConfig: ApplicationConfig = {
     provideBrowserGlobalErrorListeners(),
     provideRouter(routes),
     provideHttpClient(),
-    { provide: API_BASE_URL, useValue: 'http://localhost:5120/api' },
+    { provide: API_BASE_URL, useValue: 'https://boutique-npde.onrender.com/api' },
     provideAppInitializer(() => inject(AuthService).restore()),
   ],
 

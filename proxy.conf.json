@@ -1,0 +1,7 @@
+   {
+     "/api": {
+       "target": "https://boutique-npde.onrender.com",
+       "secure": true,
+       "changeOrigin": true
+     }
+   }
