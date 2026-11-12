@@ -4,103 +4,118 @@
   <div class="page-title">
     <h1>Your bag</h1>
     @if (bag.lines().length > 0) {
-      <span>{{ bag.count() }} {{ bag.count() === 1 ? 'item' : 'items' }}</span>
+    <span>{{ bag.count() }} {{ bag.count() === 1 ? 'item' : 'items' }}</span>
     }
   </div>
 
   @if (bag.lines().length === 0) {
-    <div class="empty">
-      <p>Your bag is empty.</p>
-      <a class="btn" routerLink="/">Browse the collection</a>
-    </div>
+  <div class="empty">
+    <p>Your bag is empty.</p>
+    <a class="btn" routerLink="/">Browse the collection</a>
+  </div>
   } @else {
-    <div class="layout">
-      <section class="bag-items" aria-label="Items in your bag">
-        <ul class="lines">
-          @for (l of bag.lines(); track l.variantId) {
-            <li class="line">
-              <a class="thumb" [routerLink]="['/product', l.slug]" [attr.aria-label]="l.name">
-                @if (l.image) { <img [src]="l.image" [alt]="l.name" /> }
-              </a>
+  <div class="layout">
+    <section class="bag-items" aria-label="Items in your bag">
+      <ul class="lines">
+        @for (l of bag.lines(); track l.variantId) {
+        <li class="line">
+          <a class="thumb" [routerLink]="['/product', l.slug]" [attr.aria-label]="l.name">
+            @if (l.image) { <img [src]="l.image" [alt]="l.name" /> }
+          </a>
 
-              <div class="details">
-                <div class="item-heading">
-                  <a class="name" [routerLink]="['/product', l.slug]">{{ l.name }}</a>
-                </div>
-                <p class="price">{{ l.price | currency: 'INR' : 'symbol' : '1.0-0' }}</p>
+          <div class="details">
+            <div class="item-heading">
+              <a class="name" [routerLink]="['/product', l.slug]">{{ l.name }}</a>
+            </div>
+            <p class="price">{{ l.price | currency: 'INR' : 'symbol' : '1.0-0' }}</p>
 
-                <div class="item-options">
-                  <div class="size-option">
-                    <span>Size</span>
-                    <strong>{{ l.size }}</strong>
-                  </div>
-                  <div class="quantity-option">
-                    <span>Quantity</span>
-                    <div class="qty" role="group" [attr.aria-label]="'Quantity for ' + l.name">
-                      <button type="button" aria-label="Decrease quantity" [disabled]="l.quantity <= 1"
-                              (click)="change(l, -1)">−</button>
-                      <span aria-live="polite">{{ l.quantity }}</span>
-                      <button type="button" aria-label="Increase quantity" [disabled]="l.quantity >= l.maxQuantity"
-                              (click)="change(l, 1)">+</button>
-                    </div>
-                  </div>
-                </div>
-                @if (l.quantity >= l.maxQuantity) {
-                  <p class="limit">{{ quantityLimitMessage(l) }}</p>
-                }
-
-                <div class="item-footer">
-                  <button type="button" class="remove" (click)="bag.remove(l.variantId)">Remove</button>
-                  <strong class="line-total">{{ l.price * l.quantity | currency: 'INR' : 'symbol' : '1.0-0' }}</strong>
+            <div class="item-options">
+              <div class="size-option">
+                <span>Size</span>
+                <strong>{{ l.size }}</strong>
+              </div>
+              <div class="quantity-option">
+                <span>Quantity</span>
+                <div class="qty" role="group" [attr.aria-label]="'Quantity for ' + l.name">
+                  <button type="button" aria-label="Decrease quantity" [disabled]="l.quantity <= 1"
+                    (click)="change(l, -1)">−</button>
+                  <span aria-live="polite">{{ l.quantity }}</span>
+                  <button type="button" aria-label="Increase quantity" [disabled]="l.quantity >= l.maxQuantity"
+                    (click)="change(l, 1)">+</button>
                 </div>
               </div>
-            </li>
-          }
-        </ul>
-        <a class="continue" routerLink="/"><span aria-hidden="true">←</span> Continue shopping</a>
-      </section>
+            </div>
+            @if (l.quantity >= l.maxQuantity) {
+            <p class="limit">{{ quantityLimitMessage(l) }}</p>
+            }
 
-      <aside class="summary" aria-label="Order summary">
-        <h2>Order summary</h2>
-        <p class="row">
-          <span>Subtotal ({{ bag.count() }} {{ bag.count() === 1 ? 'item' : 'items' }})</span>
-          <strong>{{ bag.subtotal() | currency: 'INR' : 'symbol' : '1.0-0' }}</strong>
-        </p>
-
-        <form class="pin" (submit)="checkShipping($event)">
-          <label for="pincode">Delivery pincode</label>
-          <div class="pin-row">
-            <input #pin id="pincode" name="pincode" inputmode="numeric" maxlength="6" autocomplete="postal-code"
-                   placeholder="e.g. 395006" [value]="pincode()"
-                   (input)="pincode.set(pin.value); shippingError.set(null)" />
-            <button type="submit" class="check" [disabled]="checking()">
-              {{ checking() ? 'Checking…' : 'Check' }}
-            </button>
+            <div class="item-footer">
+              <button type="button" class="remove" (click)="bag.remove(l.variantId)">Remove</button>
+              <strong class="line-total">{{ l.price * l.quantity | currency: 'INR' : 'symbol' : '1.0-0' }}</strong>
+            </div>
           </div>
-        </form>
-        @if (shippingError(); as e) { <p class="err" role="alert">{{ e }}</p> }
-
-        @if (shipping(); as s) {
-          <p class="row shipping-row">
-            <span>Shipping</span>
-            <strong>{{ s.charge === 0 ? 'Free' : (s.charge | currency: 'INR' : 'symbol' : '1.0-0') }}</strong>
-          </p>
-          <p class="note">Delivery in {{ s.eta }}</p>
-          <p class="row total">
-            <span>Total</span>
-            <strong>{{ total() | currency: 'INR' : 'symbol' : '1.0-0' }}</strong>
-          </p>
-        } @else {
-          <p class="note">Enter your pincode to see shipping and delivery time.</p>
+        </li>
         }
+      </ul>
+      <a class="continue" routerLink="/"><span aria-hidden="true">←</span> Continue shopping</a>
+    </section>
 
-        <button type="button" class="btn checkout" [disabled]="!shipping() || checking()"
-                (click)="goToCheckout()">
-          <span>Checkout</span>
-          <svg viewBox="0 0 20 20" aria-hidden="true"><path d="M3 10h13M10 4l6 6-6 6" /></svg>
-        </button>
-      </aside>
-    </div>
+    <aside class="summary" aria-label="Order summary">
+      <h2>Order summary</h2>
+      <p class="row">
+        <span>Subtotal ({{ bag.count() }} {{ bag.count() === 1 ? 'item' : 'items' }})</span>
+        <strong>{{ bag.subtotal() | currency: 'INR' : 'symbol' : '1.0-0' }}</strong>
+      </p>
+
+      <div class="pin">
+        <label for="pincode">Delivery pincode</label>
+        <div class="pin-row">
+          <input #pin id="pincode" name="pincode" inputmode="numeric" maxlength="6" autocomplete="postal-code"
+            placeholder="e.g. 395006" [value]="pincode()" (input)="onPincodeInput(pin.value)" />
+        </div>
+        @if (checking()) { <p class="note" role="status">Checking shipping and delivery time…</p> }
+      </div>
+      @if (shippingError(); as e) { <p class="err" role="alert">{{ e }}</p> }
+
+      @if (shipping(); as s) {
+      @if (s.deliveryBy) {
+      <p class="delivery-by">Delivery by <strong>{{ s.deliveryBy | date: 'EEE, d MMM' }}</strong></p>
+      } @else {
+      <p class="note">Delivery in {{ s.eta }}</p>
+      }
+
+      <p class="row shipping-row">
+        <span>Shipping</span>
+        <span class="shipping-price">
+          @if (s.saving > 0) {
+          <s class="was">{{ s.standardCharge | currency: 'INR' : 'symbol' : '1.0-0' }}</s>
+          }
+          <strong>{{ s.charge === 0 ? 'Free' : (s.charge | currency: 'INR' : 'symbol' : '1.0-0') }}</strong>
+        </span>
+      </p>
+      @if (s.saving > 0) {
+      <p class="saving">You save {{ s.saving | currency: 'INR' : 'symbol' : '1.0-0' }} on shipping</p>
+      }
+      <app-free-delivery [estimate]="s" [subtotal]="bag.subtotal()" />
+
+      <p class="row total">
+        <span>Total</span>
+        <strong>{{ total() | currency: 'INR' : 'symbol' : '1.0-0' }}</strong>
+      </p>
+      } @else {
+      @if (!checking()) {
+      <p class="note">Enter your pincode to see shipping and delivery time.</p>
+      }
+      }
+
+      <button type="button" class="btn checkout" [disabled]="!shipping() || checking()" (click)="goToCheckout()">
+        <span>Checkout</span>
+        <svg viewBox="0 0 20 20" aria-hidden="true">
+          <path d="M3 10h13M10 4l6 6-6 6" />
+        </svg>
+      </button>
+    </aside>
+  </div>
   }
 </main>
 

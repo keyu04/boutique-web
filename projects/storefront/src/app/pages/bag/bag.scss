@@ -47,9 +47,6 @@ h1 { font-family: $display; font-weight: 500; font-size: clamp(2.5rem, 4vw, 3rem
 .summary .pin-row { display: flex; gap: 8px; }
 .summary .pin-row input { flex: 1; min-width: 0; height: 42px; padding: 0 12px; border: 1px solid $line; border-radius: 4px; background: #fffdfa; color: #302a28; font: inherit; font-size: 0.9rem; }
 .summary .pin-row input::placeholder { color: #938b84; opacity: 1; }
-.summary .check { min-width: 72px; height: 42px; padding: 0 14px; border: 1px solid $burgundy; border-radius: 4px; background: transparent; color: $burgundy; font: inherit; font-size: 0.9rem; cursor: pointer; }
-.summary .check:hover:not(:disabled) { background: $burgundy; color: #fff; }
-.summary .check:disabled { opacity: 0.6; cursor: wait; }
 .summary .err { margin: 8px 0 0; color: #9b1c31; font-size: 0.85rem; font-weight: 600; }
 .summary .shipping-row { margin-top: 14px; }
 .summary .note { margin: 10px 0 24px; color: $muted; font-size: 0.9rem; line-height: 1.5; }
@@ -58,7 +55,7 @@ h1 { font-family: $display; font-weight: 500; font-size: clamp(2.5rem, 4vw, 3rem
 .summary .checkout:disabled { opacity: 0.55; cursor: not-allowed; }
 .summary .checkout svg { width: 17px; height: 17px; fill: none; stroke: currentColor; stroke-width: 1.4; stroke-linecap: round; stroke-linejoin: round; }
 
-:is(.qty button, .remove, .check, .pin-row input, .continue, .name, .thumb, .checkout):focus-visible { outline: 3px solid $burgundy; outline-offset: 2px; }
+:is(.qty button, .remove, .pin-row input, .continue, .name, .thumb, .checkout):focus-visible { outline: 3px solid $burgundy; outline-offset: 2px; }
 .empty { padding: 60px 0; text-align: center; }
 .empty p { margin-bottom: 24px; color: $muted; }
 .empty .btn { color: var(--cream); }
@@ -77,3 +74,7 @@ h1 { font-family: $display; font-weight: 500; font-size: clamp(2.5rem, 4vw, 3rem
   .qty button { width: 32px; }
   .summary { padding: 20px; }
 }
+
+.shipping-price .was { text-decoration: line-through; opacity: 0.55; margin-right: 0.4rem; font-weight: 400; }
+.saving { margin: 0.25rem 0 0; font-size: 0.85rem; color: #2e7d32; }
+.delivery-by { margin: 0.5rem 0; font-size: 0.9rem; }

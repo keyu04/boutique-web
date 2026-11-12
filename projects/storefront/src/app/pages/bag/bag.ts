@@ -1,24 +1,23 @@
-import { CurrencyPipe } from '@angular/common';
+import { CurrencyPipe, DatePipe } from '@angular/common';
 import { HttpErrorResponse } from '@angular/common/http';
-import { Component, DestroyRef, computed, inject, signal } from '@angular/core';
+import { Component, DestroyRef, computed, effect, inject, signal, untracked } from '@angular/core';
 import { takeUntilDestroyed } from '@angular/core/rxjs-interop';
 import { Title } from '@angular/platform-browser';
 import { Router, RouterLink } from '@angular/router';
-import { BRAND, ShippingApi } from '@shared';
+import { BRAND, ShippingApi, ShippingEstimate } from '@shared';
 import { BagLine, BagService } from '../../core/bag.service';
+import { FreeDelivery } from '../../core/free-delivery';
 import { SiteHeader } from '../../core/site-header';
 import { SiteFooter } from '../../core/site-footer';
 
-interface ShippingResult {
-    signature: string; // which bag contents this estimate was calculated for
-    pincode: string;
-    charge: number;
-    eta: string;
-}
+type ShippingResult = ShippingEstimate & { pincode: string };
+
+// Cash on delivery is the only payment option for now. Keep this in step with the checkout page.
+const PAYMENT_METHOD = 'Cod';
 
 @Component({
     selector: 'app-bag',
-    imports: [CurrencyPipe, RouterLink, SiteHeader, SiteFooter],
+    imports: [CurrencyPipe, DatePipe, RouterLink, SiteHeader, SiteFooter, FreeDelivery],
     templateUrl: './bag.html',
     styleUrl: './bag.scss',
 })
@@ -32,20 +31,30 @@ export class BagPage {
     readonly checking = signal(false);
     readonly shippingError = signal<string | null>(null);
     private readonly result = signal<ShippingResult | null>(null);
+    private requestId = 0;   // lets us ignore an older response that arrives late
+    private requestedPincode: string | null = null;
 
     private readonly signature = computed(() =>
         this.bag.lines().map(l => `${l.variantId}x${l.quantity}`).join(','));
 
-    /** The estimate only counts while the bag still matches what it was calculated for. */
-
+    /** The last estimate, as long as the pincode box still holds the pincode it was calculated for. */
     readonly shipping = computed(() => {
         const r = this.result();
-        return r && r.signature === this.signature() && r.pincode === this.pincode().trim() ? r : null;
+        return r && r.pincode === this.pincode().trim() ? r : null;
     });
     readonly total = computed(() => this.bag.subtotal() + (this.shipping()?.charge ?? 0));
 
     constructor() {
         inject(Title).setTitle(`Your bag | ${BRAND.name}`);
+
+        // Once a pincode has been checked, quietly refresh the estimate whenever the bag changes.
+        effect(() => {
+            this.signature();
+            untracked(() => {
+                const r = this.result();
+                if (r && this.bag.lines().length > 0) this.estimate(r.pincode);
+            });
+        });
     }
 
     goToCheckout(): void {
@@ -63,29 +72,46 @@ export class BagPage {
         return `You’ve added all ${line.maxQuantity} available ${line.maxQuantity === 1 ? 'item' : 'items'} in this size.`;
     }
 
-    checkShipping(event: Event): void {
-        event.preventDefault();
-        const pincode = this.pincode().trim();
+    onPincodeInput(value: string): void {
+        const pincode = value.trim();
+        this.pincode.set(pincode);
+        this.shippingError.set(null);
+
         if (!/^[1-9]\d{5}$/.test(pincode)) {
-            this.shippingError.set('Enter a valid 6-digit pincode.');
+            ++this.requestId;
+            this.requestedPincode = null;
+            this.checking.set(false);
+            if (pincode.length === 6) this.shippingError.set('Enter a valid 6-digit pincode.');
             return;
         }
 
-        const signature = this.signature();
+        if (this.shipping()?.pincode === pincode ||
+            (this.checking() && this.requestedPincode === pincode)) return;
+
+        this.estimate(pincode);
+    }
+
+    private estimate(pincode: string): void {
+        const request = ++this.requestId;
+        this.requestedPincode = pincode;
         this.checking.set(true);
         this.shippingError.set(null);
 
         this.shippingApi.estimate({
             pincode,
-            paymentMethod: 'Prepaid',
+            paymentMethod: PAYMENT_METHOD,
             items: this.bag.lines().map(l => ({ variantId: l.variantId, quantity: l.quantity })),
         }).pipe(takeUntilDestroyed(this.destroyRef)).subscribe({
             next: r => {
-                this.result.set({ signature, pincode, charge: r.charge, eta: r.eta });
+                if (request !== this.requestId) return;
+                this.result.set({ ...r, pincode });
+                this.requestedPincode = null;
                 this.checking.set(false);
             },
             error: (e: HttpErrorResponse) => {
+                if (request !== this.requestId) return;
                 this.result.set(null);
+                this.requestedPincode = null;
                 this.shippingError.set(
                     e.error?.error ?? e.error?.title ?? 'Could not estimate shipping. Please try again.');
                 this.checking.set(false);

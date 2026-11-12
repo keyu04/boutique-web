@@ -17,4 +17,6 @@ export interface OrderResult {
   total: number;
   paymentMethod: string;
   paymentStatus: string;
+  whatsAppMessage?: string;
+  whatsAppShareUrl?: string;
 }

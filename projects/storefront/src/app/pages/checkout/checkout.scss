@@ -97,3 +97,7 @@ app-site-footer { margin-top: 42px; }
   .trio { grid-template-columns: 1fr 1fr; }
   .trio .field:last-child { grid-column: 1 / -1; }
 }
+
+.shipping-price .was { text-decoration: line-through; opacity: 0.55; margin-right: 0.4rem; font-weight: 400; }
+.saving { margin: 0.25rem 0 0; font-size: 0.85rem; color: #2e7d32; }
+.delivery-by { margin: 0.5rem 0; font-size: 0.9rem; }

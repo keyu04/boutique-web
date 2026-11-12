@@ -1,4 +1,5 @@
-import { CurrencyPipe } from '@angular/common';
+import { CurrencyPipe, DatePipe } from '@angular/common';
+import { FreeDelivery } from '../../core/free-delivery';
 import { HttpErrorResponse } from '@angular/common/http';
 import { Component, computed, inject, signal } from '@angular/core';
 import { takeUntilDestroyed } from '@angular/core/rxjs-interop';
@@ -11,6 +12,7 @@ import { apiMessage } from '../../core/api-error';
 import { BagService } from '../../core/bag.service';
 import { SiteHeader } from '../../core/site-header';
 import { SiteFooter } from '../../core/site-footer';
+import { getWhatsAppShareUrl } from '../../core/whatsapp';
 
 const PINCODE = /^[1-9]\d{5}$/;
 const PHONE = /^[6-9]\d{9}$/;
@@ -37,7 +39,7 @@ const INDIAN_STATES = [
 
 @Component({
   selector: 'app-checkout',
-  imports: [CurrencyPipe, ReactiveFormsModule, RouterLink, SiteHeader, SiteFooter],
+  imports: [CurrencyPipe, ReactiveFormsModule, RouterLink, SiteHeader, SiteFooter, DatePipe, FreeDelivery],
   templateUrl: './checkout.html',
   styleUrl: './checkout.scss',
 })
@@ -122,6 +124,7 @@ export class CheckoutPage {
 
     const v = this.form.getRawValue();
     this.submitting.set(true);
+    const whatsAppWindow = window.open('about:blank', '_blank');
     this.ordersApi.create({
       items: this.bag.lines().map(l => ({ variantId: l.variantId, quantity: l.quantity })),
       customerName: v.customerName.trim(),
@@ -133,11 +136,19 @@ export class CheckoutPage {
       paymentMethod: 'Cod',
     }).subscribe({
       next: order => {
+        const whatsAppUrl = getWhatsAppShareUrl(order.whatsAppShareUrl);
+        if (whatsAppWindow && !whatsAppWindow.closed && whatsAppUrl) {
+          whatsAppWindow.opener = null;
+          whatsAppWindow.location.replace(whatsAppUrl);
+        } else {
+          whatsAppWindow?.close();
+        }
         this.done.set(true); // stops the "bag is empty" screen flashing while we navigate
         this.bag.clear();
         this.router.navigate(['/order', order.orderNumber], { state: { order } });
       },
       error: (e: HttpErrorResponse) => {
+        whatsAppWindow?.close();
         this.submitting.set(false);
         this.submitError.set(apiMessage(e));
       },

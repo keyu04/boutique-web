@@ -16,119 +16,129 @@
   </div>
 
   @if (bag.lines().length === 0 && !done()) {
-    <div class="empty">
-      <p>Your bag is empty.</p>
-      <a class="btn" routerLink="/">Browse the collection</a>
-    </div>
+  <div class="empty">
+    <p>Your bag is empty.</p>
+    <a class="btn" routerLink="/">Browse the collection</a>
+  </div>
   } @else {
-    <form class="layout" [formGroup]="form" (ngSubmit)="submit()" novalidate>
-      <div class="fields">
-        <section class="form-section" aria-labelledby="delivery-heading">
-          <div class="section-heading">
-            <span class="step" aria-hidden="true">01</span>
-            <div>
-              <h2 id="delivery-heading">Delivery details</h2>
-              <p>Enter the address where you’d like to receive your order.</p>
-            </div>
+  <form class="layout" [formGroup]="form" (ngSubmit)="submit()" novalidate>
+    <div class="fields">
+      <section class="form-section" aria-labelledby="delivery-heading">
+        <div class="section-heading">
+          <span class="step" aria-hidden="true">01</span>
+          <div>
+            <h2 id="delivery-heading">Delivery details</h2>
+            <p>Enter the address where you’d like to receive your order.</p>
           </div>
+        </div>
 
-          <div class="field-pair">
-            <div class="field">
-              <label for="customerName">Full name</label>
-              <input id="customerName" formControlName="customerName" autocomplete="name"
-                     placeholder="First and last name" [attr.aria-invalid]="invalid('customerName')" />
-              @if (invalid('customerName')) { <p class="field-err">{{ errors.customerName }}</p> }
-            </div>
-
-            <div class="field">
-              <label for="phone">Mobile number</label>
-              <input id="phone" type="tel" inputmode="numeric" maxlength="10" formControlName="phone"
-                     autocomplete="tel-national" placeholder="Mobile number"
-                     [attr.aria-invalid]="invalid('phone')" />
-              @if (invalid('phone')) { <p class="field-err">{{ errors.phone }}</p> }
-            </div>
+        <div class="field-pair">
+          <div class="field">
+            <label for="customerName">Full name</label>
+            <input id="customerName" formControlName="customerName" autocomplete="name"
+              placeholder="First and last name" [attr.aria-invalid]="invalid('customerName')" />
+            @if (invalid('customerName')) { <p class="field-err">{{ errors.customerName }}</p> }
           </div>
 
           <div class="field">
-            <label for="addressLine">Address</label>
-            <input id="addressLine" formControlName="addressLine" autocomplete="address-line1"
-                   placeholder="House no., street, area" [attr.aria-invalid]="invalid('addressLine')" />
-            @if (invalid('addressLine')) { <p class="field-err">{{ errors.addressLine }}</p> }
+            <label for="phone">Mobile number</label>
+            <input id="phone" type="tel" inputmode="numeric" maxlength="10" formControlName="phone"
+              autocomplete="tel-national" placeholder="Mobile number" [attr.aria-invalid]="invalid('phone')" />
+            @if (invalid('phone')) { <p class="field-err">{{ errors.phone }}</p> }
+          </div>
+        </div>
+
+        <div class="field">
+          <label for="addressLine">Address</label>
+          <input id="addressLine" formControlName="addressLine" autocomplete="address-line1"
+            placeholder="House no., street, area" [attr.aria-invalid]="invalid('addressLine')" />
+          @if (invalid('addressLine')) { <p class="field-err">{{ errors.addressLine }}</p> }
+        </div>
+
+        <div class="trio">
+          <div class="field">
+            <label for="city">City</label>
+            <input id="city" formControlName="city" autocomplete="address-level2" placeholder="City"
+              [attr.aria-invalid]="invalid('city')" />
+            @if (invalid('city')) { <p class="field-err">{{ errors.city }}</p> }
           </div>
 
-          <div class="trio">
-            <div class="field">
-              <label for="city">City</label>
-              <input id="city" formControlName="city" autocomplete="address-level2" placeholder="City"
-                     [attr.aria-invalid]="invalid('city')" />
-              @if (invalid('city')) { <p class="field-err">{{ errors.city }}</p> }
-            </div>
-
-            <div class="field">
-              <label for="state">State</label>
-              <select id="state" formControlName="state" autocomplete="address-level1"
-                      [attr.aria-invalid]="invalid('state')">
-                <option value="" disabled>Select state</option>
-                @for (s of states; track s) { <option [value]="s">{{ s }}</option> }
-              </select>
-              @if (invalid('state')) { <p class="field-err">{{ errors.state }}</p> }
-            </div>
-
-            <div class="field">
-              <label for="pincode">Pincode</label>
-              <input id="pincode" inputmode="numeric" maxlength="6" formControlName="pincode"
-                     autocomplete="postal-code" placeholder="Pincode" [attr.aria-invalid]="invalid('pincode')" />
-              @if (invalid('pincode')) { <p class="field-err">{{ errors.pincode }}</p> }
-            </div>
+          <div class="field">
+            <label for="state">State</label>
+            <select id="state" formControlName="state" autocomplete="address-level1"
+              [attr.aria-invalid]="invalid('state')">
+              <option value="" disabled>Select state</option>
+              @for (s of states; track s) { <option [value]="s">{{ s }}</option> }
+            </select>
+            @if (invalid('state')) { <p class="field-err">{{ errors.state }}</p> }
           </div>
 
-          <p class="shipping-hint">
-            <svg viewBox="0 0 18 16" aria-hidden="true"><path d="M1 2h10v9H1zM11 5h3l3 3v3h-6zM4 13a1.5 1.5 0 1 0 0-3 1.5 1.5 0 0 0 0 3Zm9 0a1.5 1.5 0 1 0 0-3 1.5 1.5 0 0 0 0 3Z" /></svg>
-            @if (shipping(); as s) {
-              Delivery in {{ s.eta }}.
-            } @else if (estimating()) {
-              Calculating shipping…
-            } @else {
-              Enter your pincode to calculate shipping.
-            }
-          </p>
-        </section>
-
-        <section class="form-section payment-section" aria-labelledby="payment-heading">
-          <div class="section-heading">
-            <span class="step" aria-hidden="true">02</span>
-            <div>
-              <h2 id="payment-heading">Payment</h2>
-              <p>Choose how you’d like to pay.</p>
-            </div>
+          <div class="field">
+            <label for="pincode">Pincode</label>
+            <input id="pincode" inputmode="numeric" maxlength="6" formControlName="pincode" autocomplete="postal-code"
+              placeholder="Pincode" [attr.aria-invalid]="invalid('pincode')" />
+            @if (invalid('pincode')) { <p class="field-err">{{ errors.pincode }}</p> }
           </div>
-          <label class="pay">
-            <input type="radio" name="payment" checked />
-            <span class="radio-mark" aria-hidden="true"></span>
-            <span class="pay-copy"><strong>Cash on delivery</strong><small>Pay in cash when your order arrives.</small></span>
-            <svg class="pay-icon" viewBox="0 0 18 14" aria-hidden="true"><rect x="1" y="1" width="16" height="12" rx="1" /><circle cx="9" cy="7" r="2" /></svg>
-          </label>
-          <label class="pay disabled">
-            <input type="radio" name="payment" disabled />
-            <span class="radio-mark" aria-hidden="true"></span>
-            <span class="pay-copy"><strong>Pay online</strong><small>Coming soon.</small></span>
-            <svg class="pay-icon" viewBox="0 0 18 14" aria-hidden="true"><rect x="1" y="1" width="16" height="12" rx="1" /><path d="M1 5h16" /></svg>
-          </label>
-        </section>
-      </div>
+        </div>
 
-      <div class="summary-column">
-        <aside class="summary" aria-label="Order summary">
+        <p class="shipping-hint">
+          <svg viewBox="0 0 18 16" aria-hidden="true">
+            <path
+              d="M1 2h10v9H1zM11 5h3l3 3v3h-6zM4 13a1.5 1.5 0 1 0 0-3 1.5 1.5 0 0 0 0 3Zm9 0a1.5 1.5 0 1 0 0-3 1.5 1.5 0 0 0 0 3Z" />
+          </svg>
+          @if (shipping(); as s) {
+          @if (s.deliveryBy) { Delivery by {{ s.deliveryBy | date: 'EEE, d MMM' }}. } @else { Delivery in {{ s.eta }}. }
+          } @else if (estimating()) {
+          Calculating shipping…
+          } @else {
+          Enter your pincode to calculate shipping.
+          }
+        </p>
+      </section>
+
+      <section class="form-section payment-section" aria-labelledby="payment-heading">
+        <div class="section-heading">
+          <span class="step" aria-hidden="true">02</span>
+          <div>
+            <h2 id="payment-heading">Payment</h2>
+            <p>Choose how you’d like to pay.</p>
+          </div>
+        </div>
+        <label class="pay">
+          <input type="radio" name="payment" checked />
+          <span class="radio-mark" aria-hidden="true"></span>
+          <span class="pay-copy"><strong>Cash on delivery</strong><small>Pay in cash when your order
+              arrives.</small></span>
+          <svg class="pay-icon" viewBox="0 0 18 14" aria-hidden="true">
+            <rect x="1" y="1" width="16" height="12" rx="1" />
+            <circle cx="9" cy="7" r="2" />
+          </svg>
+        </label>
+        <label class="pay disabled">
+          <input type="radio" name="payment" disabled />
+          <span class="radio-mark" aria-hidden="true"></span>
+          <span class="pay-copy"><strong>Pay online</strong><small>Coming soon.</small></span>
+          <svg class="pay-icon" viewBox="0 0 18 14" aria-hidden="true">
+            <rect x="1" y="1" width="16" height="12" rx="1" />
+            <path d="M1 5h16" />
+          </svg>
+        </label>
+      </section>
+    </div>
+
+    <div class="summary-column">
+      <aside class="summary" aria-label="Order summary">
         <div class="summary-heading">
           <h2>Your order</h2>
           <span>{{ bag.count() }} {{ bag.count() === 1 ? 'item' : 'items' }}</span>
         </div>
         <ul class="mini">
           @for (l of bag.lines(); track l.variantId) {
-            <li>
-              @if (l.image) { <img [src]="l.image" [alt]="l.name" /> } @else { <span class="image-placeholder"></span> }
-              <span class="item-info">{{ l.name }}<small>Size {{ l.size }} × {{ l.quantity }}</small><strong>{{ l.price * l.quantity | currency: 'INR' : 'symbol' : '1.0-0' }}</strong></span>
-            </li>
+          <li>
+            @if (l.image) { <img [src]="l.image" [alt]="l.name" /> } @else { <span class="image-placeholder"></span> }
+            <span class="item-info">{{ l.name }}<small>Size {{ l.size }} × {{ l.quantity }}</small><strong>{{ l.price *
+                l.quantity | currency: 'INR' : 'symbol' : '1.0-0' }}</strong></span>
+          </li>
           }
         </ul>
 
@@ -140,13 +150,24 @@
           <p class="row">
             <span>Shipping</span>
             @if (shipping(); as s) {
+            <span class="shipping-price">
+              @if (s.saving > 0) {
+              <s class="was">{{ s.standardCharge | currency: 'INR' : 'symbol' : '1.0-0' }}</s>
+              }
               <strong>{{ s.charge === 0 ? 'Free' : (s.charge | currency: 'INR' : 'symbol' : '1.0-0') }}</strong>
+            </span>
             } @else if (estimating()) {
-              <span>Calculating…</span>
+            <span>Calculating…</span>
             } @else {
-              <span>Enter pincode</span>
+            <span>Enter pincode</span>
             }
           </p>
+          @if (shipping(); as s) {
+          @if (s.saving > 0) {
+          <p class="saving">You save {{ s.saving | currency: 'INR' : 'symbol' : '1.0-0' }} on shipping</p>
+          }
+          <app-free-delivery [estimate]="s" [subtotal]="bag.subtotal()" />
+          }
           @if (shippingError(); as e) { <p class="field-err" role="alert">{{ e }}</p> }
         </div>
 
@@ -155,26 +176,31 @@
           <strong>{{ total() | currency: 'INR' : 'symbol' : '1.0-0' }}</strong>
         </div>
         @if (shipping(); as s) {
-          <p class="note">Delivery in {{ s.eta }}.</p>
+        <p class="note">  @if (s.deliveryBy) { Delivery by {{ s.deliveryBy | date: 'EEE, d MMM' }}. } @else { Delivery in {{ s.eta }}. }</p>
         } @else {
-          <p class="note">Shipping will be added after you enter a pincode.</p>
+        <p class="note">Shipping will be added after you enter a pincode.</p>
         }
 
         <p class="payment-summary">
-          <svg viewBox="0 0 18 14" aria-hidden="true"><rect x="1" y="1" width="16" height="12" rx="1" /><circle cx="9" cy="7" r="2" /></svg>
+          <svg viewBox="0 0 18 14" aria-hidden="true">
+            <rect x="1" y="1" width="16" height="12" rx="1" />
+            <circle cx="9" cy="7" r="2" />
+          </svg>
           <span>Payment: Cash on delivery</span>
         </p>
         @if (submitError(); as e) { <p class="submit-err" role="alert">{{ e }}</p> }
 
         <button type="submit" class="btn place" [disabled]="submitting()">
           <span>{{ submitting() ? 'Placing order…' : 'Place order' }}</span>
-          <svg viewBox="0 0 20 20" aria-hidden="true"><path d="M3 10h13M10 4l6 6-6 6" /></svg>
+          <svg viewBox="0 0 20 20" aria-hidden="true">
+            <path d="M3 10h13M10 4l6 6-6 6" />
+          </svg>
         </button>
         <p class="review-hint">Please review your delivery details before placing your order.</p>
-        </aside>
-        <a class="back" routerLink="/bag"><span aria-hidden="true">←</span> Back to bag</a>
-      </div>
-    </form>
+      </aside>
+      <a class="back" routerLink="/bag"><span aria-hidden="true">←</span> Back to bag</a>
+    </div>
+  </form>
   }
 </main>
 
