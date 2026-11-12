@@ -10,7 +10,7 @@ export const appConfig: ApplicationConfig = {
     provideBrowserGlobalErrorListeners(),
     provideRouter(routes, withInMemoryScrolling({ scrollPositionRestoration: 'top' })),
     provideHttpClient(),
-    { provide: API_BASE_URL, useValue: 'https://boutique-web-vuf0.onrender.com/api' },
+    { provide: API_BASE_URL, useValue: 'https://boutique-backend-rqz2.onrender.com/api' },
     provideAppInitializer(() => inject(AuthService).restore()),
   ],
 
