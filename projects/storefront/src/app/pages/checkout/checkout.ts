@@ -121,6 +121,11 @@ export class CheckoutPage {
       this.form.markAllAsTouched();
       return;
     }
+    const expected = this.shipping();
+    if (!expected) {
+      this.submitError.set('Please wait while we calculate shipping for your pincode.');
+      return;
+    }
 
     const v = this.form.getRawValue();
     this.submitting.set(true);
@@ -134,6 +139,7 @@ export class CheckoutPage {
       state: v.state,
       pincode: v.pincode.trim(),
       paymentMethod: 'Cod',
+      expectedShippingCharge: expected.charge,
     }).subscribe({
       next: order => {
         const whatsAppUrl = getWhatsAppShareUrl(order.whatsAppShareUrl);
@@ -151,7 +157,17 @@ export class CheckoutPage {
         whatsAppWindow?.close();
         this.submitting.set(false);
         this.submitError.set(apiMessage(e));
+        if (e.error?.code === 'shipping_changed') this.refreshShipping(v.pincode.trim());
       },
     });
+  }
+  private refreshShipping(pincode: string): void {
+    this.estimating.set(true);
+    this.shippingApi.estimate({
+      pincode,
+      paymentMethod: 'Cod',
+      items: this.bag.lines().map(l => ({ variantId: l.variantId, quantity: l.quantity })),
+    }).pipe(finalize(() => this.estimating.set(false)))
+      .subscribe({ next: e => this.shipping.set(e), error: () => { } });
   }
 }
