@@ -8,6 +8,9 @@ export const authGuard: CanActivateFn = (route, state) => {
   const router = inject(Router);
 
   if (!auth.isAuthenticated()) {
+    if (auth.unreachable()) {
+      return router.createUrlTree(['/unavailable'], { queryParams: { returnUrl: state.url } });
+    }
     return router.createUrlTree(['/login'], { queryParams: { returnUrl: state.url } });
   }
   const roles = route.data['roles'] as string[] | undefined;
