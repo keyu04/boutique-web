@@ -5,6 +5,7 @@ import { CategoriesApi, Category, ProductsApi, ProductDetail, ProductImage, Prod
 import { ActivatedRoute, Router, RouterLink } from '@angular/router';
 import { EMPTY, Subject, catchError, switchMap, tap } from 'rxjs';
 import { BagService } from '../../core/bag.service';
+import { ProductListReturnState } from '../../core/product-list-return-state';
 import { SiteHeader } from '../../core/site-header';
 import { SiteFooter } from '../../core/site-footer';
 
@@ -20,9 +21,11 @@ export class Home {
   private readonly categoriesApi = inject(CategoriesApi);
   private readonly router = inject(Router);
   private readonly route = inject(ActivatedRoute);
+  private readonly productListReturnState = inject(ProductListReturnState);
   private readonly categorySelection = new Subject<string | null>();
   private headerRevealTimer: ReturnType<typeof setTimeout> | null = null;
   private routeCategoryInitialized = false;
+  private scrollToInitialCategory = false;
 
   @ViewChild('collectionSection') private collectionSection?: ElementRef<HTMLElement>;
   @ViewChild('categoryFilters') private categoryFilters?: ElementRef<HTMLElement>;
@@ -69,6 +72,10 @@ export class Home {
       catchError(() => {
         this.error.set('Could not load products. Is the API running?');
         this.loading.set(false);
+        if (this.scrollToInitialCategory) {
+          this.scrollToInitialCategory = false;
+          this.scrollCollectionIntoView();
+        }
         return EMPTY;
       }),
     )),
@@ -79,11 +86,21 @@ export class Home {
       this.featured.set(page.items.find(p => p.image) ?? null);
     }
     this.loading.set(false);
+    if (this.scrollToInitialCategory) {
+      this.scrollToInitialCategory = false;
+      this.scrollCollectionIntoView();
+    }
+    const returnProductSlug = this.productListReturnState.consume();
+    if (returnProductSlug && page.items.some(product => product.slug === returnProductSlug)) {
+      this.restoreProductPosition(returnProductSlug);
+    }
     });
 
     this.route.queryParamMap.pipe(takeUntilDestroyed()).subscribe(params => {
       const category = params.get('category');
       if (this.routeCategoryInitialized && this.selectedCategory() === category) return;
+      this.scrollToInitialCategory =
+        !this.routeCategoryInitialized && category !== null && !this.route.snapshot.fragment;
       this.routeCategoryInitialized = true;
       this.selectedCategory.set(category);
       this.categorySelection.next(category);
@@ -153,7 +170,7 @@ export class Home {
       relativeTo: this.route,
       queryParams: { category: category.slug },
       queryParamsHandling: 'merge',
-      preserveFragment: true,
+      fragment: 'collection',
     });
     if (selectedFromHeader) this.scrollProductsBelowHeader();
   }
@@ -166,7 +183,7 @@ export class Home {
       relativeTo: this.route,
       queryParams: { category: null },
       queryParamsHandling: 'merge',
-      preserveFragment: true,
+      fragment: 'collection',
     });
     if (selectedFromHeader) this.scrollProductsBelowHeader();
   }
@@ -179,6 +196,39 @@ export class Home {
     const top = grid.getBoundingClientRect().top + window.scrollY - header.offsetHeight;
     const behavior = window.matchMedia('(prefers-reduced-motion: reduce)').matches ? 'auto' : 'smooth';
     window.scrollTo({ top: Math.max(0, top), behavior });
+  }
+
+  private scrollCollectionIntoView(): void {
+    requestAnimationFrame(() => {
+      const section = this.collectionSection?.nativeElement;
+      const header = this.siteHeader?.nativeElement;
+      if (!section || !header) return;
+
+      const headerHeight = header.classList.contains('hidden') ? 0 : header.offsetHeight;
+      const top = section.getBoundingClientRect().top + window.scrollY - headerHeight;
+      window.scrollTo({ top: Math.max(0, top), behavior: 'auto' });
+    });
+  }
+
+  rememberProductForReturn(slug: string, event: MouseEvent): void {
+    if (event.button !== 0 || event.metaKey || event.ctrlKey || event.shiftKey || event.altKey) return;
+    this.productListReturnState.remember(slug);
+  }
+
+  private restoreProductPosition(slug: string): void {
+    requestAnimationFrame(() => requestAnimationFrame(() => {
+      const grid = this.productGrid?.nativeElement;
+      const product = Array.from(grid?.querySelectorAll<HTMLElement>('[data-product-slug]') ?? [])
+        .find(card => card.dataset['productSlug'] === slug);
+      if (!product) return;
+
+      const header = this.siteHeader?.nativeElement;
+      const filters = this.categoryFilters?.nativeElement;
+      const headerHeight = header?.classList.contains('hidden') ? 0 : header?.offsetHeight ?? 0;
+      const filtersHeight = filters?.offsetHeight ?? 0;
+      const top = product.getBoundingClientRect().top + window.scrollY - headerHeight - filtersHeight - 16;
+      window.scrollTo({ top: Math.max(0, top), behavior: 'auto' });
+    }));
   }
 
   imageFor(product: ProductSummary): string | null {

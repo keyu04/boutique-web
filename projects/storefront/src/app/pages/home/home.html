@@ -91,9 +91,10 @@
       }
       <div #productGrid class="grid" [class.updating]="loading()" [attr.aria-busy]="loading()">
         @for (p of products(); track p.id) {
-        <article class="item">
+        <article class="item" [attr.data-product-slug]="p.slug">
           <div class="product-image">
-            <a class="image-link" [routerLink]="['/product', p.slug]" [attr.aria-label]="'View ' + p.name">
+            <a class="image-link" [routerLink]="['/product', p.slug]"
+               [attr.aria-label]="'View ' + p.name" (click)="rememberProductForReturn(p.slug, $event)">
               @if (imageFor(p); as image) {
                 <img [src]="image" [alt]="p.name" loading="lazy" />
               }
@@ -154,7 +155,8 @@
             }
           </div>
           @if (galleryErrors()[p.id]; as galleryError) { <p class="card-message" role="alert">{{ galleryError }}</p> }
-          <a class="product-copy" [routerLink]="['/product', p.slug]">
+          <a class="product-copy" [routerLink]="['/product', p.slug]"
+             (click)="rememberProductForReturn(p.slug, $event)">
             <h3>{{ p.name }}</h3>
             <p class="price">
               <strong>{{ p.price | currency: 'INR' : 'symbol' : '1.0-0' }}</strong>
