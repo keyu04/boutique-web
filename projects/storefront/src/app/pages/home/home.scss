@@ -63,8 +63,8 @@ main { flex: 1; }
 .collection h2 { font-size: clamp(2rem, 4vw, 3rem); color: var(--burgundy); }
 .collection-copy p { margin: 10px 0 0; color: var(--muted); font-size: 1rem; }
 
-.category-filters { display: flex; flex-wrap: wrap; justify-content: flex-end; gap: 10px; padding-bottom: 4px; }
-.category-button { display: inline-flex; min-width: 112px; min-height: 44px; align-items: center; justify-content: center; gap: 8px; padding: 0 16px; border: 1px solid var(--rose); border-radius: 999px; background: transparent; color: var(--burgundy); font: inherit; font-size: 0.95rem; white-space: nowrap; cursor: pointer; transition: background-color 160ms ease, color 160ms ease, border-color 160ms ease; }
+.category-filters { display: flex; flex-wrap: wrap; align-items: center; justify-content: flex-end; gap: 12px; padding-bottom: 4px; }
+.category-button { display: inline-flex; min-width: 140px; min-height: 56px; align-items: center; justify-content: center; gap: 12px; padding: 0 24px; border: 1px solid var(--rose); border-radius: 999px; background: transparent; color: var(--burgundy); font: inherit; font-size: 1.1rem; white-space: nowrap; cursor: pointer; transition: background-color 160ms ease, color 160ms ease, border-color 160ms ease; }
 .category-icon { width: 17px; height: 17px; flex: 0 0 17px; fill: none; stroke: currentColor; stroke-linecap: round; stroke-linejoin: round; stroke-width: 1.15; }
 .category-button:hover:not(.selected) { background: var(--cream); border-color: var(--burgundy); }
 .category-button.selected { border-color: var(--burgundy); background: var(--burgundy); color: var(--cream); }
