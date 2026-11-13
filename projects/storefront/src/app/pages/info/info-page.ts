@@ -1,6 +1,7 @@
 import { Component, inject } from '@angular/core';
 import { Title } from '@angular/platform-browser';
 import { ActivatedRoute, RouterLink } from '@angular/router';
+import { formatPageTitle } from '../../core/page-title';
 import { SiteFooter } from '../../core/site-footer';
 import { SiteHeader } from '../../core/site-header';
 import { INFO_PAGES } from './info-content';
@@ -555,6 +556,6 @@ export class InfoPage {
   ];
 
   constructor() {
-    inject(Title).setTitle(`${this.page.title} | ${SITE.name}`);
+    inject(Title).setTitle(formatPageTitle(this.page.title));
   }
 }

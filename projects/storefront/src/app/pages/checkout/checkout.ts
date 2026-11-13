@@ -7,9 +7,10 @@ import { NonNullableFormBuilder, ReactiveFormsModule, Validators } from '@angula
 import { Title } from '@angular/platform-browser';
 import { Router, RouterLink } from '@angular/router';
 import { EMPTY, catchError, distinctUntilChanged, finalize, map, switchMap, tap } from 'rxjs';
-import { BRAND, OrdersApi, ShippingApi, ShippingEstimate } from '@shared';
+import { OrdersApi, ShippingApi, ShippingEstimate } from '@shared';
 import { apiMessage } from '../../core/api-error';
 import { BagService } from '../../core/bag.service';
+import { formatPageTitle } from '../../core/page-title';
 import { SiteHeader } from '../../core/site-header';
 import { SiteFooter } from '../../core/site-footer';
 import { getWhatsAppShareUrl } from '../../core/whatsapp';
@@ -73,7 +74,7 @@ export class CheckoutPage {
   readonly total = computed(() => this.bag.subtotal() + (this.shipping()?.charge ?? 0));
 
   constructor() {
-    inject(Title).setTitle(`Checkout | ${BRAND.name}`);
+    inject(Title).setTitle(formatPageTitle('Checkout'));
 
     // Whenever the pincode changes: drop the old estimate, and fetch a new one once it is valid.
     // switchMap cancels an in-flight request if the customer keeps typing.

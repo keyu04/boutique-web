@@ -4,9 +4,10 @@ import { Component, DestroyRef, computed, effect, inject, signal, untracked } fr
 import { takeUntilDestroyed } from '@angular/core/rxjs-interop';
 import { Title } from '@angular/platform-browser';
 import { Router, RouterLink } from '@angular/router';
-import { BRAND, ShippingApi, ShippingEstimate } from '@shared';
+import { ShippingApi, ShippingEstimate } from '@shared';
 import { BagLine, BagService } from '../../core/bag.service';
 import { FreeDelivery } from '../../core/free-delivery';
+import { formatPageTitle } from '../../core/page-title';
 import { SiteHeader } from '../../core/site-header';
 import { SiteFooter } from '../../core/site-footer';
 
@@ -45,7 +46,7 @@ export class BagPage {
     readonly total = computed(() => this.bag.subtotal() + (this.shipping()?.charge ?? 0));
 
     constructor() {
-        inject(Title).setTitle(`Your bag | ${BRAND.name}`);
+        inject(Title).setTitle(formatPageTitle('Your bag'));
 
         // Once a pincode has been checked, quietly refresh the estimate whenever the bag changes.
         effect(() => {

@@ -2,7 +2,8 @@ import { CurrencyPipe } from '@angular/common';
 import { Component, inject } from '@angular/core';
 import { Title } from '@angular/platform-browser';
 import { ActivatedRoute, RouterLink } from '@angular/router';
-import { BRAND, OrderResult } from '@shared';
+import { OrderResult } from '@shared';
+import { formatPageTitle } from '../../core/page-title';
 import { SiteHeader } from '../../core/site-header';
 import { SiteFooter } from '../../core/site-footer';
 
@@ -17,7 +18,7 @@ export class OrderConfirmationPage {
   readonly order: OrderResult | null;
 
   constructor() {
-    inject(Title).setTitle(`Order placed | ${BRAND.name}`);
+    inject(Title).setTitle(formatPageTitle('Order placed'));
     const passed = history.state?.order as OrderResult | undefined;
     this.order = passed && passed.orderNumber === this.orderNumber ? passed : null;
   }
