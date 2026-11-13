@@ -1,10 +1,12 @@
 import { CurrencyPipe } from '@angular/common';
 import { Component, DestroyRef, ElementRef, HostListener, ViewChild, inject, signal } from '@angular/core';
 import { takeUntilDestroyed } from '@angular/core/rxjs-interop';
+import { Title } from '@angular/platform-browser';
 import { CategoriesApi, Category, ProductsApi, ProductDetail, ProductImage, ProductSize, ProductSummary, BRAND } from '@shared';
 import { ActivatedRoute, Router, RouterLink } from '@angular/router';
 import { EMPTY, Subject, catchError, switchMap, tap } from 'rxjs';
 import { BagService } from '../../core/bag.service';
+import { formatPageTitle } from '../../core/page-title';
 import { ProductListReturnState } from '../../core/product-list-return-state';
 import { SiteHeader } from '../../core/site-header';
 import { SiteFooter } from '../../core/site-footer';
@@ -55,6 +57,8 @@ export class Home {
   readonly categoriesHeaderRevealing = signal(false);
 
   constructor() {
+    inject(Title).setTitle(formatPageTitle(BRAND.tagline));
+
     this.destroyRef.onDestroy(() => {
       if (this.headerRevealTimer !== null) clearTimeout(this.headerRevealTimer);
     });

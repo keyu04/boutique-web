@@ -7,6 +7,7 @@ import { ActivatedRoute, RouterLink } from '@angular/router';
 import { catchError, map, of, switchMap, tap } from 'rxjs';
 import { BRAND, ProductDetail, ProductsApi } from '@shared';
 import { BagService } from '../../core/bag.service';
+import { formatPageTitle } from '../../core/page-title';
 import { SiteHeader } from '../../core/site-header';
 
 type PageState = 'loading' | 'ready' | 'notfound' | 'error';
@@ -60,7 +61,7 @@ export class ProductDetailPage {
     ).subscribe(({ product, status }) => {
       this.product.set(product);
       this.state.set(status);
-      this.title.setTitle(product ? `${product.name} | ${BRAND.name}` : BRAND.name);
+      this.title.setTitle(formatPageTitle(product?.name ?? 'Product details'));
       const primary = product?.images.findIndex(i => i.isPrimary) ?? -1;
       if (primary > 0) this.imageIndex.set(primary);
     });

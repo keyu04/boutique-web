@@ -5,7 +5,8 @@ import { takeUntilDestroyed } from '@angular/core/rxjs-interop';
 import { AbstractControl, NonNullableFormBuilder, ReactiveFormsModule, ValidationErrors, Validators } from '@angular/forms';
 import { Title } from '@angular/platform-browser';
 import { ActivatedRoute } from '@angular/router';
-import { BRAND, TrackedOrder, TrackingApi, apiMessage } from '@shared';
+import { TrackedOrder, TrackingApi, apiMessage } from '@shared';
+import { formatPageTitle } from '../../core/page-title';
 import { SiteHeader } from '../../core/site-header';
 import { SiteFooter } from '../../core/site-footer';
 
@@ -67,7 +68,7 @@ export class TrackOrderPage {
   });
 
   constructor() {
-    inject(Title).setTitle(`Track your order | ${BRAND.name}`);
+    inject(Title).setTitle(formatPageTitle('Track your order'));
     const prefill = inject(ActivatedRoute).snapshot.queryParamMap.get('order');
     if (prefill) this.form.controls.orderNumber.setValue(prefill.slice(0, 40));
   }

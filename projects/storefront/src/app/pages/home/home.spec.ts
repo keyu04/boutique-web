@@ -1,6 +1,7 @@
 import { ComponentFixture, TestBed } from '@angular/core/testing';
 import { Router, provideRouter } from '@angular/router';
 import { RouterTestingHarness } from '@angular/router/testing';
+import { Title } from '@angular/platform-browser';
 import { CategoriesApi, ProductsApi } from '@shared';
 import { of } from 'rxjs';
 import { BagService } from '../../core/bag.service';
@@ -39,6 +40,17 @@ describe('Home', () => {
 
   it('should create', () => {
     expect(component).toBeTruthy();
+  });
+
+  it('restores the storefront title after returning from another page', () => {
+    const title = TestBed.inject(Title);
+    title.setTitle('Sahjish Fashion | Your bag');
+    fixture.destroy();
+
+    fixture = TestBed.createComponent(Home);
+    component = fixture.componentInstance;
+
+    expect(title.getTitle()).toBe('Sahjish Fashion | Wear your everyday beautifully.');
   });
 
   it('scrolls to the collection for a category URL without a fragment', async () => {
