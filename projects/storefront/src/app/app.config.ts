@@ -10,7 +10,7 @@ export const appConfig: ApplicationConfig = {
     provideBrowserGlobalErrorListeners(),
     provideRouter(routes, withInMemoryScrolling({
       anchorScrolling: 'enabled',
-      scrollPositionRestoration: 'top',
+      scrollPositionRestoration: 'enabled',
     })),
     provideHttpClient(),
     { provide: API_BASE_URL, useValue: 'https://boutique-backend-rqz2.onrender.com/api' },
