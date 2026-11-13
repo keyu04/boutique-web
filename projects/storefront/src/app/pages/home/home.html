@@ -99,6 +99,13 @@
               }
             </a>
             @if (p.tag) { <span class="tag">{{ p.tag }}</span> }
+            <button type="button" class="favorite-toggle" [class.favorite]="isFavorite(p.id)"
+                    [attr.aria-label]="isFavorite(p.id) ? 'Remove ' + p.name + ' from favorites' : 'Add ' + p.name + ' to favorites'"
+                    [attr.aria-pressed]="isFavorite(p.id)" (click)="toggleFavorite(p.id)">
+              <svg viewBox="0 0 24 24" aria-hidden="true">
+                <path d="M20.8 4.6a5.5 5.5 0 0 0-7.8 0L12 5.7l-1.1-1.1a5.5 5.5 0 0 0-7.8 7.8l1.1 1.1L12 21l7.8-7.5 1.1-1.1a5.5 5.5 0 0 0-.1-7.8Z" />
+              </svg>
+            </button>
             @if (loadingGalleries()[p.id]) {
               <span class="gallery-loading" role="status">Loading photos…</span>
             } @else if ((galleries()[p.id]?.length ?? 0) > 1 || !galleries()[p.id]) {
@@ -113,20 +120,6 @@
                 <svg viewBox="0 0 20 20" aria-hidden="true"><path d="m7 4 6 6-6 6" /></svg>
               </button>
             }
-            <button type="button" class="card-add" [class.open]="quickAddId() === p.id"
-                    [attr.aria-expanded]="quickAddId() === p.id" (click)="toggleQuickAdd(p)">
-              <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M5 8h14l1 13H4L5 8Z" /><path d="M9 8V6a3 3 0 0 1 6 0v2" /></svg>
-              <span>{{ quickAddId() === p.id ? 'Choose a size' : 'Add to bag' }}</span>
-            </button>
-            @if (quickAddId() === p.id) {
-              <div class="quick-add-panel" aria-label="Choose a size">
-                @for (size of p.sizes; track size.variantId) {
-                  <button type="button" class="quick-size" [disabled]="size.stockQuantity === 0"
-                          [attr.aria-label]="size.stockQuantity === 0 ? size.size + ', sold out' : 'Add size ' + size.size + ' to bag'"
-                          (click)="quickAdd(p, size)">{{ size.size }}</button>
-                }
-              </div>
-            }
             @if (galleries()[p.id]; as gallery) {
                 @if (gallery.length > 1) {
                   <div class="gallery-dots" [attr.aria-label]="'Photo ' + ((imageIndexes()[p.id] ?? 0) + 1) + ' of ' + gallery.length">
@@ -138,18 +131,42 @@
                   </div>
                 }
             }
+            @if (quickAddId() === p.id) {
+              <div class="quick-add-panel" aria-label="Choose a size">
+                <div class="quick-add-heading">
+                  <span>Choose a size</span>
+                  <button type="button" class="quick-add-cancel" (click)="closeQuickAdd()">Cancel</button>
+                </div>
+                @for (size of p.sizes; track size.variantId) {
+                  <button type="button" class="quick-size" [disabled]="size.stockQuantity === 0"
+                          [attr.aria-label]="size.stockQuantity === 0 ? size.size + ', sold out' : (quickAddIntent() === 'buy' ? 'Buy size ' + size.size + ' now' : 'Add size ' + size.size + ' to bag')"
+                          (click)="quickAdd(p, size)">{{ size.size }}</button>
+                }
+              </div>
+            } @else {
+              <div class="card-actions">
+                <button type="button" class="card-action add-to-bag" (click)="toggleQuickAdd(p, 'add')">
+                  <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M5 8h14l1 13H4L5 8Z" /><path d="M9 8V6a3 3 0 0 1 6 0v2" /></svg>
+                  <span>Add to Bag</span>
+                </button>
+                <button type="button" class="card-action buy-now" (click)="toggleQuickAdd(p, 'buy')">Buy Now</button>
+              </div>
+            }
           </div>
           @if (galleryErrors()[p.id]; as galleryError) { <p class="card-message" role="alert">{{ galleryError }}</p> }
-          @if (quickAddMessageProductId() === p.id && quickAddMessage(); as message) {
-            <p class="card-message" [class.success]="quickAddSuccess()" [attr.role]="quickAddSuccess() ? 'status' : 'alert'">{{ message }}</p>
-          }
           <a class="product-copy" [routerLink]="['/product', p.slug]">
             <h3>{{ p.name }}</h3>
             <p class="price">
-              {{ p.price | currency: 'INR' : 'symbol' : '1.0-0' }}
-              <s>{{ p.mrp | currency: 'INR' : 'symbol' : '1.0-0' }}</s>
+              <strong>{{ p.price | currency: 'INR' : 'symbol' : '1.0-0' }}</strong>
+              @if (p.mrp > p.price) {
+                <s>{{ p.mrp | currency: 'INR' : 'symbol' : '1.0-0' }}</s>
+                <span class="discount">{{ discountPercent(p) }}% OFF</span>
+              }
             </p>
           </a>
+          @if (quickAddMessageProductId() === p.id && quickAddMessage(); as message) {
+            <p class="card-message" [class.success]="quickAddSuccess()" [attr.role]="quickAddSuccess() ? 'status' : 'alert'">{{ message }}</p>
+          }
         </article>
         }
       </div>

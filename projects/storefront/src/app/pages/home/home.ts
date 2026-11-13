@@ -2,7 +2,7 @@ import { CurrencyPipe } from '@angular/common';
 import { Component, DestroyRef, ElementRef, HostListener, ViewChild, inject, signal } from '@angular/core';
 import { takeUntilDestroyed } from '@angular/core/rxjs-interop';
 import { CategoriesApi, Category, ProductsApi, ProductDetail, ProductImage, ProductSize, ProductSummary, BRAND } from '@shared';
-import { RouterLink } from '@angular/router';
+import { Router, RouterLink } from '@angular/router';
 import { EMPTY, Subject, catchError, switchMap, tap } from 'rxjs';
 import { BagService } from '../../core/bag.service';
 import { SiteHeader } from '../../core/site-header';
@@ -18,6 +18,7 @@ export class Home {
   private readonly destroyRef = inject(DestroyRef);
   private readonly api = inject(ProductsApi);
   private readonly categoriesApi = inject(CategoriesApi);
+  private readonly router = inject(Router);
   private readonly categorySelection = new Subject<string | null>();
   private headerRevealTimer: ReturnType<typeof setTimeout> | null = null;
 
@@ -39,9 +40,11 @@ export class Home {
   readonly loadingGalleries = signal<Record<number, boolean>>({});
   readonly galleryErrors = signal<Record<number, string>>({});
   readonly quickAddId = signal<number | null>(null);
+  readonly quickAddIntent = signal<'add' | 'buy'>('add');
   readonly quickAddMessageProductId = signal<number | null>(null);
   readonly quickAddMessage = signal<string | null>(null);
   readonly quickAddSuccess = signal(false);
+  readonly favoriteProductIds = signal<number[]>([]);
   readonly categoriesFloating = signal(false);
   readonly categoriesHeaderHidden = signal(false);
   readonly categoriesHeaderRevealing = signal(false);
@@ -109,7 +112,7 @@ export class Home {
     const shouldFloat =
       !headerHidden &&
       slot.getBoundingClientRect().top <= headerHeight + 1 &&
-      section.getBoundingClientRect().bottom > categoryTop + filters.offsetHeight;
+      section.getBoundingClientRect().bottom > categoryTop + filters.offsetHeight / 2;
 
     if (headerHidden) {
       if (this.headerRevealTimer !== null) {
@@ -204,14 +207,36 @@ export class Home {
     });
   }
 
-  toggleQuickAdd(product: ProductSummary): void {
-    this.quickAddId.set(this.quickAddId() === product.id ? null : product.id);
+  toggleQuickAdd(product: ProductSummary, intent: 'add' | 'buy'): void {
+    const shouldClose = this.quickAddId() === product.id && this.quickAddIntent() === intent;
+    this.quickAddId.set(shouldClose ? null : product.id);
+    this.quickAddIntent.set(intent);
     this.quickAddMessageProductId.set(null);
     this.quickAddMessage.set(null);
     this.quickAddSuccess.set(false);
   }
 
+  closeQuickAdd(): void {
+    this.quickAddId.set(null);
+  }
+
+  isFavorite(productId: number): boolean {
+    return this.favoriteProductIds().includes(productId);
+  }
+
+  toggleFavorite(productId: number): void {
+    this.favoriteProductIds.update(ids =>
+      ids.includes(productId) ? ids.filter(id => id !== productId) : [...ids, productId]);
+  }
+
+  discountPercent(product: ProductSummary): number {
+    return product.mrp > product.price && product.mrp > 0
+      ? Math.round((product.mrp - product.price) / product.mrp * 100)
+      : 0;
+  }
+
   quickAdd(product: ProductSummary, size: ProductSize): void {
+    const buyNow = this.quickAddIntent() === 'buy';
     const image = this.imageFor(product);
     const error = this.bag.add(
       {
@@ -229,5 +254,6 @@ export class Home {
     this.quickAddMessageProductId.set(product.id);
     this.quickAddMessage.set(error ?? `${size.size} added to your bag.`);
     this.quickAddSuccess.set(error === null);
+    if (buyNow && error === null) void this.router.navigate(['/bag']);
   }
 }
