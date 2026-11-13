@@ -1,8 +1,8 @@
 {
   "$schema": "node_modules/wrangler/config-schema.json",
-  "name": "boutique-admin",
+  "name": "boutique-web",
   "compatibility_date": "2026-11-13",
   "assets": {
-    "directory": "dist/admin"
+    "directory": "./dist/admin"
   }
 }
