@@ -4,7 +4,8 @@
   "scripts": {
     "ng": "ng",
     "start": "ng serve",
-    "build": "ng build",
+    "build:storefront": "ng build storefront --configuration production",
+    "build:admin": "ng build admin --configuration production",
     "watch": "ng build --watch --configuration development",
     "test": "ng test",
     "start:storefront": "ng serve storefront --port 4200",
