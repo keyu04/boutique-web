@@ -1,8 +1,11 @@
 import { Component } from '@angular/core';
+import { RouterLink } from '@angular/router';
 import { BRAND } from '@shared';
+import { SITE } from '../pages/info/site-info';
 
 @Component({
   selector: 'app-site-footer',
+  imports: [RouterLink],
   template: `
     <footer class="footer">
       <!-- <section class="newsletter" aria-labelledby="newsletter-title">
@@ -42,46 +45,50 @@ import { BRAND } from '@shared';
         </svg>
         <div class="footer-inner">
           <div class="brand-column">
-            <a class="footer-brand" href="/" [attr.aria-label]="brand.name + ' home'">{{ brand.name }}</a>
+            <a class="footer-brand" routerLink="/" [attr.aria-label]="brand.name + ' home'">{{ brand.name }}</a>
             <h2>An expression of you.</h2>
             <p>Everyday moments, special occasions,<br />find something that feels like you.</p>
             <h3 class="social-heading">Follow our world</h3>
             <div class="social-links" aria-label="Social media">
-              <a href="#" aria-label="Instagram (coming soon)" title="Coming soon" (click)="keepPlaceholder($event)">
-                <svg viewBox="0 0 24 24" aria-hidden="true"><rect x="3" y="3" width="18" height="18" rx="5" /><circle cx="12" cy="12" r="4" /><path d="M17.5 6.5h.01" /></svg>
-              </a>
-              <a href="#" aria-label="Facebook (coming soon)" title="Coming soon" (click)="keepPlaceholder($event)">
-                <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M14 21v-8h3l.5-4H14V7c0-1.2.4-2 2-2h1.7V1.4C17 1.2 15.8 1 14.5 1 11 1 9 3.1 9 6.8V9H6v4h3v8h5Z" /></svg>
-              </a>
-              <a href="#" aria-label="WhatsApp (coming soon)" title="Coming soon" (click)="keepPlaceholder($event)">
-                <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M20 11.6a8 8 0 0 1-11.8 7L4 20l1.4-4.1A8 8 0 1 1 20 11.6Z" /><path d="M9 8.5c.5 2 2 3.5 4.5 4.5l1-1 2 1c-.2 1.4-1.3 2-2.6 1.8-3.5-.6-6.2-3.3-6.8-6.8C7 6.7 7.6 5.6 9 5.4l1 2-1 1.1Z" /></svg>
-              </a>
+              @if (site.instagram) {
+                <a [href]="site.instagram" aria-label="Instagram" target="_blank" rel="noopener">
+                  <svg viewBox="0 0 24 24" aria-hidden="true"><rect x="3" y="3" width="18" height="18" rx="5" /><circle cx="12" cy="12" r="4" /><path d="M17.5 6.5h.01" /></svg>
+                </a>
+              }
+              @if (site.facebook) {
+                <a [href]="site.facebook" aria-label="Facebook" target="_blank" rel="noopener">
+                  <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M14 21v-8h3l.5-4H14V7c0-1.2.4-2 2-2h1.7V1.4C17 1.2 15.8 1 14.5 1 11 1 9 3.1 9 6.8V9H6v4h3v8h5Z" /></svg>
+                </a>
+              }
+              @if (whatsappHref) {
+                <a [href]="whatsappHref" aria-label="WhatsApp" target="_blank" rel="noopener">
+                  <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M20 11.6a8 8 0 0 1-11.8 7L4 20l1.4-4.1A8 8 0 1 1 20 11.6Z" /><path d="M9 8.5c.5 2 2 3.5 4.5 4.5l1-1 2 1c-.2 1.4-1.3 2-2.6 1.8-3.5-.6-6.2-3.3-6.8-6.8C7 6.7 7.6 5.6 9 5.4l1 2-1 1.1Z" /></svg>
+                </a>
+              }
             </div>
           </div>
 
           <nav class="footer-links" aria-label="Footer navigation">
             <div class="link-column">
               <h2>Discover</h2>
-              <a href="/#collection">Shop All</a>
-              <a href="/#collection">Dresses</a>
-              <a href="/#collection">Kurta Sets</a>
-              <a href="/#collection">Kurtis</a>
-              <a href="/#collection">Co-ords</a>
-              <a href="/#collection">Sarees</a>
+              <a routerLink="/" fragment="collection">Shop All</a>
+              <a routerLink="/" fragment="collection" [queryParams]="{ category: 'dresses' }">Dresses</a>
+              <a routerLink="/" fragment="collection" [queryParams]="{ category: 'kurta-sets' }">Kurta Sets</a>
+              <a routerLink="/" fragment="collection" [queryParams]="{ category: 'kurtis' }">Kurtis</a>
+              <a routerLink="/" fragment="collection" [queryParams]="{ category: 'co-ords' }">Co-ords</a>
+              <!-- <a routerLink="/" fragment="collection" [queryParams]="{ category: 'sarees' }">Sarees</a> -->
             </div>
             <div class="link-column">
               <h2>Customer Care</h2>
-              <a href="/track">Track Your Order</a>
-              <a href="#" (click)="keepPlaceholder($event)">Shipping &amp; Delivery</a>
-              <a href="#" (click)="keepPlaceholder($event)">Returns &amp; Exchanges</a>
-              <a href="#" (click)="keepPlaceholder($event)">Size Guide</a>
-              <a href="#" (click)="keepPlaceholder($event)">Contact Us</a>
+              <a routerLink="/track">Track Your Order</a>
+              <a routerLink="/shipping">Shipping &amp; Delivery</a>
+              <a routerLink="/returns">Returns &amp; Exchanges</a>
+              <a routerLink="/size-guide">Size Guide</a>
+              <a routerLink="/contact">Contact Us</a>
             </div>
             <div class="link-column">
               <h2>{{ brand.name }}</h2>
-              <a href="#" (click)="keepPlaceholder($event)">Our Story</a>
-              <a href="#" (click)="keepPlaceholder($event)">My Account</a>
-              <a href="#" (click)="keepPlaceholder($event)">My Wishlist</a>
+              <a routerLink="/our-story">Our Story</a>
             </div>
           </nav>
         </div>
@@ -89,13 +96,13 @@ import { BRAND } from '@shared';
         <div class="footer-bottom">
           <span class="copyright">© 2026 {{ brand.name }} Fashion. All rights reserved.</span>
           <div class="legal-links">
-            <a href="#" (click)="keepPlaceholder($event)">
+            <a routerLink="/privacy">
               <svg viewBox="0 0 20 20" aria-hidden="true"><path d="M4 2h8l4 4v12H4V2Z" /><path d="M12 2v5h5m-10 3h6m-6 3h6m-6 3h4" /><circle cx="15" cy="15" r="3" /></svg>
               Privacy Policy
             </a>
-            <a href="#" (click)="keepPlaceholder($event)">
+            <a routerLink="/terms">
               <svg viewBox="0 0 20 20" aria-hidden="true"><path d="M10 2 17 5v5c0 4-2.8 6.5-7 8-4.2-1.5-7-4-7-8V5l7-3Z" /><path d="m7 10 2 2 4-4" /></svg>
-              Terms of Service
+              Terms &amp; Conditions
             </a>
           </div>
           <a class="back-to-top" href="#" (click)="scrollToTop($event)">
@@ -190,10 +197,10 @@ import { BRAND } from '@shared';
 })
 export class SiteFooter {
   readonly brand = BRAND;
-
-  keepPlaceholder(event: Event): void {
-    event.preventDefault();
-  }
+  readonly site = SITE;
+  readonly whatsappHref = /^\d{10,15}$/.test(SITE.whatsapp)
+    ? `https://wa.me/${SITE.whatsapp}`
+    : null;
 
   scrollToTop(event: Event): void {
     event.preventDefault();

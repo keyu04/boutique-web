@@ -1,5 +1,12 @@
 import { Routes } from '@angular/router';
 import { Home } from './pages/home/home';
+import { INFO_PAGES } from './pages/info/info-content';
+
+const infoRoutes: Routes = Object.keys(INFO_PAGES).map(path => ({
+  path,
+  data: { slug: path },
+  loadComponent: () => import('./pages/info/info-page').then(m => m.InfoPage),
+}));
 
 export const routes: Routes = [
   { path: '', component: Home },
@@ -25,5 +32,6 @@ export const routes: Routes = [
     path: 'track',
     loadComponent: () => import('./pages/track-order/track-order').then(m => m.TrackOrderPage),
   },
+  ...infoRoutes,
   { path: '**', redirectTo: '' },
 ];

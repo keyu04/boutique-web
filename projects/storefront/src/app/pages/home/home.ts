@@ -2,7 +2,7 @@ import { CurrencyPipe } from '@angular/common';
 import { Component, DestroyRef, ElementRef, HostListener, ViewChild, inject, signal } from '@angular/core';
 import { takeUntilDestroyed } from '@angular/core/rxjs-interop';
 import { CategoriesApi, Category, ProductsApi, ProductDetail, ProductImage, ProductSize, ProductSummary, BRAND } from '@shared';
-import { Router, RouterLink } from '@angular/router';
+import { ActivatedRoute, Router, RouterLink } from '@angular/router';
 import { EMPTY, Subject, catchError, switchMap, tap } from 'rxjs';
 import { BagService } from '../../core/bag.service';
 import { SiteHeader } from '../../core/site-header';
@@ -19,8 +19,10 @@ export class Home {
   private readonly api = inject(ProductsApi);
   private readonly categoriesApi = inject(CategoriesApi);
   private readonly router = inject(Router);
+  private readonly route = inject(ActivatedRoute);
   private readonly categorySelection = new Subject<string | null>();
   private headerRevealTimer: ReturnType<typeof setTimeout> | null = null;
+  private routeCategoryInitialized = false;
 
   @ViewChild('collectionSection') private collectionSection?: ElementRef<HTMLElement>;
   @ViewChild('categoryFilters') private categoryFilters?: ElementRef<HTMLElement>;
@@ -79,6 +81,14 @@ export class Home {
     this.loading.set(false);
     });
 
+    this.route.queryParamMap.pipe(takeUntilDestroyed()).subscribe(params => {
+      const category = params.get('category');
+      if (this.routeCategoryInitialized && this.selectedCategory() === category) return;
+      this.routeCategoryInitialized = true;
+      this.selectedCategory.set(category);
+      this.categorySelection.next(category);
+    });
+
     this.categoriesApi.list().pipe(takeUntilDestroyed()).subscribe({
     next: categories => {
       const order = ['Dresses', 'Kurta Sets', 'Kurtis', 'Co-ords', 'Tops'];
@@ -86,7 +96,6 @@ export class Home {
         (a, b) => order.indexOf(a.name) - order.indexOf(b.name),
       );
       this.categories.set(orderedCategories);
-      this.categorySelection.next(null);
     },
     error: () => {
       this.error.set('Could not load collection categories.');
@@ -140,6 +149,12 @@ export class Home {
     const selectedFromHeader = this.categoriesFloating();
     this.selectedCategory.set(category.slug);
     this.categorySelection.next(category.slug);
+    void this.router.navigate([], {
+      relativeTo: this.route,
+      queryParams: { category: category.slug },
+      queryParamsHandling: 'merge',
+      preserveFragment: true,
+    });
     if (selectedFromHeader) this.scrollProductsBelowHeader();
   }
 
@@ -147,6 +162,12 @@ export class Home {
     const selectedFromHeader = this.categoriesFloating();
     this.selectedCategory.set(null);
     this.categorySelection.next(null);
+    void this.router.navigate([], {
+      relativeTo: this.route,
+      queryParams: { category: null },
+      queryParamsHandling: 'merge',
+      preserveFragment: true,
+    });
     if (selectedFromHeader) this.scrollProductsBelowHeader();
   }
 
