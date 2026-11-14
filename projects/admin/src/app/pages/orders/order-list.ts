@@ -247,7 +247,7 @@ export class OrderListPage {
       : ['Delivered', 'Confirmed', 'Packed', 'Shipped'].includes(normalizedStatus)
         ? '<svg viewBox="0 0 14 14" aria-hidden="true"><path d="m2.5 7.2 2.7 2.6 6.3-6.1" /></svg>'
         : '';
-    const payment = escapeHtml(`${this.paymentLabel(order.paymentMethod)} · ${order.paymentStatus}`);
+    const payment = escapeHtml(`${this.paymentLabel(order.paymentMethod)} · ${this.paymentStatusLabel(order.paymentStatus)}`);
     const templateUrl = escapeHtml(new URL('/assets/order-summary-template.png', document.baseURI).href);
     const subtotal = formatRupees(order.subtotal);
     const shipping = formatRupees(order.shippingCharge);
@@ -504,5 +504,9 @@ export class OrderListPage {
 
   paymentLabel(method: string): string {
     return method === 'Cod' ? 'Cash on delivery' : method;
+  }
+
+  paymentStatusLabel(status: string): string {
+    return status === 'CodDue' ? 'Due on delivery' : status;
   }
 }

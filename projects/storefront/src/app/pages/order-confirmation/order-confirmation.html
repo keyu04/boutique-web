@@ -14,7 +14,7 @@
     <span class="order-label">Order number</span>
     <strong class="order-number">{{ orderNumber }}</strong>
     @if (order; as o) {
-      <span class="payment-method">{{ o.paymentMethod === 'Cod' ? 'Cash on delivery' : 'Paid online' }}</span>
+      <span class="payment-method">{{ o.paymentMethod === 'Cod' ? 'Cash on delivery' : 'Online payment via WhatsApp' }}</span>
     }
   </div>
 
@@ -32,13 +32,22 @@
         </div>
 
         @if (o.paymentMethod === 'Cod') {
-          <div class="cod-card">
-            <div class="cod-label">
+          <div class="payment-card">
+            <div class="payment-label">
               <span>Cash due on delivery</span>
               <svg viewBox="0 0 20 20" aria-hidden="true"><rect x="2" y="5" width="16" height="10" rx="1" /><circle cx="10" cy="10" r="2" /></svg>
             </div>
-            <p class="cod-amount">{{ o.total | currency: 'INR' : 'symbol' : '1.0-0' }}</p>
-            <p class="cod-note">Please keep {{ o.total | currency: 'INR' : 'symbol' : '1.0-0' }} ready. You’ll pay in cash when your order arrives.</p>
+            <p class="payment-amount">{{ o.total | currency: 'INR' : 'symbol' : '1.0-0' }}</p>
+            <p class="payment-note">Please keep {{ o.total | currency: 'INR' : 'symbol' : '1.0-0' }} ready. You’ll pay in cash when your order arrives.</p>
+          </div>
+        } @else {
+          <div class="payment-card">
+            <div class="payment-label">
+              <span>Online payment via WhatsApp</span>
+              <svg viewBox="0 0 18 14" aria-hidden="true"><rect x="1" y="1" width="16" height="12" rx="1" /><path d="M1 5h16" /></svg>
+            </div>
+            <p class="payment-amount">{{ o.total | currency: 'INR' : 'symbol' : '1.0-0' }}</p>
+            <p class="payment-note">Payment is not complete yet. Send your prepared order message on WhatsApp; we’ll reply with a QR code so you can pay.</p>
           </div>
         }
       } @else {

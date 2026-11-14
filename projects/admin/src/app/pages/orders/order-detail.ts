@@ -40,8 +40,25 @@ export class OrderDetailPage {
     readonly trackingError = signal<string | null>(null);
     readonly trackingSaved = signal(false);
 
+    readonly paymentReference = signal('');
+    readonly savingPayment = signal(false);
+    readonly paymentError = signal<string | null>(null);
+    readonly paymentSaved = signal(false);
+
     /** Worth entering once the parcel is packed, until it is delivered. */
     readonly canEditTracking = computed(() => ['Packed', 'Shipped'].includes(this.order()?.status ?? ''));
+    readonly canMarkPaymentPaid = computed(() => {
+        const order = this.order();
+        return !!order && order.paymentMethod === 'Prepaid' &&
+            order.paymentStatus === 'Pending' && order.status !== 'Cancelled';
+    });
+    readonly trackingChanged = computed(() => {
+        const order = this.order();
+        return !!order && (
+            this.courier().trim() !== (order.courierName ?? '').trim() ||
+            this.tracking().trim() !== (order.trackingNumber ?? '').trim()
+        );
+    });
 
     showImagePreview(event: Event, url: string, name: string): void {
         const target = event.currentTarget;
@@ -63,6 +80,7 @@ export class OrderDetailPage {
 
     saveTracking(event: Event): void {
         event.preventDefault();
+        if (this.savingTracking() || !this.trackingChanged()) return;
         const courierName = this.courier().trim();
         const trackingNumber = this.tracking().trim();
         this.trackingSaved.set(false);
@@ -81,6 +99,28 @@ export class OrderDetailPage {
             error: (e: HttpErrorResponse) => {
                 this.savingTracking.set(false);
                 this.trackingError.set(apiMessage(e, 'Could not save the tracking details.'));
+            },
+        });
+    }
+
+    markPaymentPaid(event: Event): void {
+        event.preventDefault();
+        if (this.savingPayment() || !this.canMarkPaymentPaid()) return;
+        if (!confirm('Mark this order as paid? Continue only after verifying the payment was received.')) return;
+
+        this.savingPayment.set(true);
+        this.paymentError.set(null);
+        this.paymentSaved.set(false);
+        this.api.markPaymentPaid(this.id, this.paymentReference()).subscribe({
+            next: updated => {
+                this.order.set(updated);
+                this.paymentReference.set(updated.paymentReference ?? '');
+                this.savingPayment.set(false);
+                this.paymentSaved.set(true);
+            },
+            error: (e: HttpErrorResponse) => {
+                this.savingPayment.set(false);
+                this.paymentError.set(apiMessage(e, 'Could not mark the payment as paid.'));
             },
         });
     }
@@ -108,6 +148,7 @@ export class OrderDetailPage {
                 this.order.set(order);
                 this.courier.set(order.courierName ?? '');
                 this.tracking.set(order.trackingNumber ?? '');
+                this.paymentReference.set(order.paymentReference ?? '');
                 this.state.set('ready');
             },
             error: (e: HttpErrorResponse) => this.state.set(e.status === 404 ? 'notfound' : 'error'),
@@ -120,6 +161,10 @@ export class OrderDetailPage {
 
     paymentLabel(method: string): string {
         return method === 'Cod' ? 'Cash on delivery' : method;
+    }
+
+    paymentStatusLabel(status: string): string {
+        return status === 'CodDue' ? 'Due on delivery' : status;
     }
 
     changeStatus(status: string): void {

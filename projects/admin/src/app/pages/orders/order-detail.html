@@ -157,8 +157,8 @@
                             <input #trackingInput id="tracking" type="text" maxlength="100" autocomplete="off"
                                 [value]="tracking()" (input)="tracking.set(trackingInput.value); trackingSaved.set(false)" />
                         </div>
-                        <button type="submit" class="action-button" [disabled]="savingTracking()">
-                            {{ savingTracking() ? 'Saving…' : 'Save tracking' }}
+                        <button type="submit" class="action-button" [disabled]="savingTracking() || !trackingChanged()">
+                            {{ savingTracking() ? 'Saving…' : (trackingChanged() ? 'Save tracking' : (o.courierName && o.trackingNumber ? 'Tracking saved' : 'Enter tracking details')) }}
                         </button>
                         @if (trackingError(); as e) { <p class="err" role="alert">{{ e }}</p> }
                         @if (trackingSaved()) { <p class="saved" role="status">Tracking details saved.</p> }
@@ -188,7 +188,7 @@
                     </div>
                     <div>
                         <dt>Payment</dt>
-                        <dd><span class="payment-status" [attr.data-payment]="o.paymentStatus.toLowerCase()">{{ o.paymentStatus }}</span></dd>
+                        <dd><span class="payment-status" [attr.data-payment]="o.paymentStatus.toLowerCase()">{{ paymentStatusLabel(o.paymentStatus) }}</span></dd>
                     </div>
                     @if (o.paymentReference) {
                         <div><dt>Reference</dt><dd>{{ o.paymentReference }}</dd></div>
@@ -200,6 +200,21 @@
                         <div><dt>Tracking</dt><dd>{{ o.trackingNumber }}</dd></div>
                     }
                 </dl>
+                @if (canMarkPaymentPaid()) {
+                    <form class="payment-actions" (submit)="markPaymentPaid($event)" novalidate>
+                        <div class="field">
+                            <label for="paymentReference">Payment reference (optional)</label>
+                            <input #paymentReferenceInput id="paymentReference" type="text" maxlength="100" autocomplete="off"
+                                [value]="paymentReference()"
+                                (input)="paymentReference.set(paymentReferenceInput.value); paymentSaved.set(false)" />
+                        </div>
+                        <button type="submit" class="action-button" [disabled]="savingPayment()">
+                            {{ savingPayment() ? 'Saving payment…' : 'Mark as paid' }}
+                        </button>
+                    </form>
+                }
+                @if (paymentError(); as e) { <p class="err" role="alert">{{ e }}</p> }
+                @if (paymentSaved()) { <p class="saved" role="status">Payment marked as paid.</p> }
             </section>
         </aside>
     </div>

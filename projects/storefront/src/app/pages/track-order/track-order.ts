@@ -109,6 +109,10 @@ export class TrackOrderPage {
   }
 
   paymentLabel(method: string): string {
-    return method === 'Cod' ? 'Cash on delivery' : 'Paid online';
+    return method === 'Cod' ? 'Cash on delivery' : 'Online payment via WhatsApp';
+  }
+
+  paymentStatusLabel(status: string): string {
+    return status === 'CodDue' ? 'Due on delivery' : status;
   }
 }

@@ -6,7 +6,7 @@ import { takeUntilDestroyed } from '@angular/core/rxjs-interop';
 import { NonNullableFormBuilder, ReactiveFormsModule, Validators } from '@angular/forms';
 import { Title } from '@angular/platform-browser';
 import { Router, RouterLink } from '@angular/router';
-import { EMPTY, catchError, distinctUntilChanged, finalize, map, switchMap, tap } from 'rxjs';
+import { EMPTY, catchError, combineLatest, distinctUntilChanged, finalize, map, startWith, switchMap, tap } from 'rxjs';
 import { OrdersApi, ShippingApi, ShippingEstimate } from '@shared';
 import { apiMessage } from '../../core/api-error';
 import { BagService } from '../../core/bag.service';
@@ -61,6 +61,7 @@ export class CheckoutPage {
     city: ['', [Validators.required, Validators.maxLength(80)]],
     state: ['', [Validators.required]],
     pincode: ['', [Validators.required, Validators.pattern(PINCODE)]],
+    paymentMethod: this.fb.control<'Cod' | 'Prepaid'>('Cod'),
   });
 
   readonly shipping = signal<ShippingEstimate | null>(null);
@@ -76,21 +77,24 @@ export class CheckoutPage {
   constructor() {
     inject(Title).setTitle(formatPageTitle('Checkout'));
 
-    // Whenever the pincode changes: drop the old estimate, and fetch a new one once it is valid.
+    // Whenever the pincode or payment method changes, refresh the estimate for the selected method.
     // switchMap cancels an in-flight request if the customer keeps typing.
-    this.form.controls.pincode.valueChanges.pipe(
-      map(value => value.trim()),
-      distinctUntilChanged(),
+    combineLatest([
+      this.form.controls.pincode.valueChanges.pipe(startWith(this.form.controls.pincode.value)),
+      this.form.controls.paymentMethod.valueChanges.pipe(startWith(this.form.controls.paymentMethod.value)),
+    ]).pipe(
+      map(([pincode, paymentMethod]) => ({ pincode: pincode.trim(), paymentMethod })),
+      distinctUntilChanged((a, b) => a.pincode === b.pincode && a.paymentMethod === b.paymentMethod),
       tap(() => {
         this.shipping.set(null);
         this.shippingError.set(null);
       }),
-      switchMap(pincode => {
+      switchMap(({ pincode, paymentMethod }) => {
         if (!PINCODE.test(pincode)) return EMPTY;
         this.estimating.set(true);
         return this.shippingApi.estimate({
           pincode,
-          paymentMethod: 'Cod',
+          paymentMethod,
           items: this.bag.lines().map(l => ({ variantId: l.variantId, quantity: l.quantity })),
         }).pipe(
           catchError((e: HttpErrorResponse) => {
@@ -139,7 +143,7 @@ export class CheckoutPage {
       city: v.city.trim(),
       state: v.state,
       pincode: v.pincode.trim(),
-      paymentMethod: 'Cod',
+      paymentMethod: v.paymentMethod,
       expectedShippingCharge: expected.charge,
     }).subscribe({
       next: order => {
@@ -166,7 +170,7 @@ export class CheckoutPage {
     this.estimating.set(true);
     this.shippingApi.estimate({
       pincode,
-      paymentMethod: 'Cod',
+      paymentMethod: this.form.controls.paymentMethod.value,
       items: this.bag.lines().map(l => ({ variantId: l.variantId, quantity: l.quantity })),
     }).pipe(finalize(() => this.estimating.set(false)))
       .subscribe({ next: e => this.shipping.set(e), error: () => { } });

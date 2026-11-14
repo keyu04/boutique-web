@@ -104,8 +104,8 @@
             <p>Choose how you’d like to pay.</p>
           </div>
         </div>
-        <label class="pay">
-          <input type="radio" name="payment" checked />
+        <label class="pay" [class.selected]="form.controls.paymentMethod.value === 'Cod'">
+          <input type="radio" name="payment" value="Cod" formControlName="paymentMethod" />
           <span class="radio-mark" aria-hidden="true"></span>
           <span class="pay-copy"><strong>Cash on delivery</strong><small>Pay in cash when your order
               arrives.</small></span>
@@ -114,10 +114,10 @@
             <circle cx="9" cy="7" r="2" />
           </svg>
         </label>
-        <label class="pay disabled">
-          <input type="radio" name="payment" disabled />
+        <label class="pay" [class.selected]="form.controls.paymentMethod.value === 'Prepaid'">
+          <input type="radio" name="payment" value="Prepaid" formControlName="paymentMethod" />
           <span class="radio-mark" aria-hidden="true"></span>
-          <span class="pay-copy"><strong>Pay online</strong><small>Coming soon.</small></span>
+          <span class="pay-copy"><strong>Pay online</strong><small>We’ll send you a QR code on WhatsApp to complete payment.</small></span>
           <svg class="pay-icon" viewBox="0 0 18 14" aria-hidden="true">
             <rect x="1" y="1" width="16" height="12" rx="1" />
             <path d="M1 5h16" />
@@ -186,12 +186,12 @@
             <rect x="1" y="1" width="16" height="12" rx="1" />
             <circle cx="9" cy="7" r="2" />
           </svg>
-          <span>Payment: Cash on delivery</span>
+          <span>Payment: {{ form.controls.paymentMethod.value === 'Cod' ? 'Cash on delivery' : 'Online via WhatsApp' }}</span>
         </p>
         @if (submitError(); as e) { <p class="submit-err" role="alert">{{ e }}</p> }
 
         <button type="submit" class="btn place" [disabled]="submitting()">
-          <span>{{ submitting() ? 'Placing order…' : 'Place order' }}</span>
+          <span>{{ submitting() ? 'Placing order…' : (form.controls.paymentMethod.value === 'Prepaid' ? 'Place order & continue on WhatsApp' : 'Place order') }}</span>
           <svg viewBox="0 0 20 20" aria-hidden="true">
             <path d="M3 10h13M10 4l6 6-6 6" />
           </svg>
