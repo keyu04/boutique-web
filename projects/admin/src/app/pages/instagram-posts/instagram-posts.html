@@ -1,0 +1,107 @@
+<section class="page-heading">
+  <div>
+    <p class="eyebrow">Social content</p>
+    <h1>Instagram post studio</h1>
+    <p>Turn product photos into branded posts, ready to share.</p>
+  </div>
+</section>
+
+<div class="studio">
+  <section class="panel setup" aria-labelledby="setup-title">
+    <div class="panel-heading">
+      <div>
+        <p class="eyebrow">01 / Upload</p>
+        <h2 id="setup-title">Choose your photos</h2>
+      </div>
+      <span class="photo-count">{{ photos().length }} selected</span>
+    </div>
+
+    <input #picker class="visually-hidden" type="file" accept="image/*" multiple
+           (change)="onFilesSelected($event)" />
+    <button type="button" class="upload-area" (click)="picker.click()">
+      <span class="upload-icon" aria-hidden="true">＋</span>
+      <strong>{{ photos().length ? 'Add more photos' : 'Choose product photos' }}</strong>
+      <span>PNG, JPG or WebP · You can select multiple images</span>
+    </button>
+
+    @if (photos().length > 0) {
+      <div class="photo-list" aria-label="Selected photos">
+        @for (photo of photos(); track photo.id; let i = $index) {
+          <article class="photo-row">
+            <img [src]="photo.previewUrl" [alt]="'Selected product photo ' + (i + 1)" />
+            <span class="photo-name" [title]="photo.file.name">{{ photo.file.name }}</span>
+            <button type="button" class="remove-photo" (click)="removePhoto(photo.id)"
+                    [attr.aria-label]="'Remove ' + photo.file.name">×</button>
+          </article>
+        }
+      </div>
+    } @else {
+      <p class="empty-note">Your selected photos will appear here.</p>
+    }
+
+    <label class="price-field">
+      <span>Post price <span class="required">*</span></span>
+      <span class="price-input">
+        <span aria-hidden="true">₹</span>
+        <input type="number" min="1" step="1" inputmode="numeric" placeholder="4,999"
+               [value]="priceInput()" (input)="setPrice($event)" aria-describedby="price-help" />
+      </span>
+    </label>
+    <p id="price-help" class="field-help">This price is added to every selected photo.</p>
+    @if (priceInput() && !formattedPrice()) {
+      <p class="field-error" role="alert">Enter a whole price greater than zero.</p>
+    }
+
+    <div class="export-note">
+      <span class="export-icon" aria-hidden="true">▧</span>
+      <span>Portrait post · 1200 × 1500 px · PNG</span>
+    </div>
+    <button type="button" class="primary-button" [disabled]="!canGenerate()"
+            (click)="generatePosts()">
+      {{ generating() ? 'Creating posts…' : 'Generate posts' }}
+    </button>
+
+    @if (error(); as message) {
+      <p class="error-message" role="alert">{{ message }}</p>
+    }
+    @if (notice(); as message) {
+      <p class="success-message" role="status">{{ message }}</p>
+    }
+  </section>
+
+  <section class="panel results" aria-labelledby="results-title">
+    <div class="panel-heading">
+      <div>
+        <p class="eyebrow">02 / Preview</p>
+        <h2 id="results-title">Your branded posts</h2>
+      </div>
+      @if (posts().length > 0) {
+        <span class="photo-count">{{ posts().length }} ready</span>
+      }
+    </div>
+
+    @if (posts().length > 0) {
+      <div class="post-grid">
+        @for (post of posts(); track post.fileName; let i = $index) {
+          <article class="post-card">
+            <img [src]="post.previewUrl" [alt]="'Generated Instagram post ' + (i + 1)" />
+            <span class="post-name" [title]="post.fileName">{{ post.fileName }}</span>
+          </article>
+        }
+      </div>
+      <button type="button" class="download-button" (click)="downloadPosts()">
+        <span aria-hidden="true">↓</span>
+        {{ posts().length === 1 ? 'Download PNG' : 'Download all as ZIP' }}
+      </button>
+    } @else {
+      <div class="preview-empty">
+        <div class="preview-frame" aria-hidden="true">
+          <span class="preview-mark">SJ</span>
+          <span class="preview-price">₹4,999</span>
+        </div>
+        <h3>Made for your feed</h3>
+        <p>Your photos will appear here with the Sahjish logo, decorative frame and price tag.</p>
+      </div>
+    }
+  </section>
+</div>
