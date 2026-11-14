@@ -2,14 +2,17 @@ import { CurrencyPipe } from '@angular/common';
 import { Component, DestroyRef, ElementRef, HostListener, ViewChild, inject, signal } from '@angular/core';
 import { takeUntilDestroyed } from '@angular/core/rxjs-interop';
 import { Title } from '@angular/platform-browser';
-import { CategoriesApi, Category, ProductsApi, ProductDetail, ProductImage, ProductSize, ProductSummary, BRAND } from '@shared';
+import { CategoriesApi, Category, Page, ProductsApi, ProductDetail, ProductImage, ProductSize, ProductSummary, BRAND } from '@shared';
 import { ActivatedRoute, Router, RouterLink } from '@angular/router';
-import { EMPTY, Subject, catchError, switchMap, tap } from 'rxjs';
+import { EMPTY, Observable, Subject, catchError, finalize, of, shareReplay, switchMap, tap } from 'rxjs';
 import { BagService } from '../../core/bag.service';
+import { FavoritesService } from '../../core/favorites.service';
 import { formatPageTitle } from '../../core/page-title';
 import { ProductListReturnState } from '../../core/product-list-return-state';
 import { SiteHeader } from '../../core/site-header';
 import { SiteFooter } from '../../core/site-footer';
+
+const PRODUCT_PAGE_SIZE = 12;
 
 @Component({
   selector: 'app-home',
@@ -25,17 +28,23 @@ export class Home {
   private readonly route = inject(ActivatedRoute);
   private readonly productListReturnState = inject(ProductListReturnState);
   private readonly categorySelection = new Subject<string | null>();
+  private readonly productPages = new Map<string, Page<ProductSummary>>();
+  private readonly productRequests = new Map<string, Observable<Page<ProductSummary>>>();
   private headerRevealTimer: ReturnType<typeof setTimeout> | null = null;
   private routeCategoryInitialized = false;
   private scrollToInitialCategory = false;
+  private productAnchorActive = false;
+  private readonly scrollPositionToRestore: number | null;
 
   @ViewChild('collectionSection') private collectionSection?: ElementRef<HTMLElement>;
   @ViewChild('categoryFilters') private categoryFilters?: ElementRef<HTMLElement>;
+  @ViewChild('productListAnchor') private productListAnchor?: ElementRef<HTMLElement>;
   @ViewChild('productGrid') private productGrid?: ElementRef<HTMLElement>;
   @ViewChild(SiteHeader, { read: ElementRef }) private siteHeader?: ElementRef<HTMLElement>;
 
   readonly brand = BRAND;
   readonly bag = inject(BagService);
+  readonly favorites = inject(FavoritesService);
   readonly categories = signal<Category[]>([]);
   readonly products = signal<ProductSummary[]>([]);
   readonly loading = signal(true);
@@ -51,34 +60,34 @@ export class Home {
   readonly quickAddMessageProductId = signal<number | null>(null);
   readonly quickAddMessage = signal<string | null>(null);
   readonly quickAddSuccess = signal(false);
-  readonly favoriteProductIds = signal<number[]>([]);
   readonly categoriesFloating = signal(false);
   readonly categoriesHeaderHidden = signal(false);
   readonly categoriesHeaderRevealing = signal(false);
+  readonly loadingPlaceholders = Array.from({ length: PRODUCT_PAGE_SIZE }, (_, index) => index);
 
   constructor() {
     inject(Title).setTitle(formatPageTitle(BRAND.tagline));
+    this.scrollPositionToRestore = this.productListReturnState.consumeScrollPosition();
 
     this.destroyRef.onDestroy(() => {
       if (this.headerRevealTimer !== null) clearTimeout(this.headerRevealTimer);
     });
 
     this.categorySelection.pipe(
-    tap(() => {
-      this.loading.set(true);
+    tap(category => {
+      this.loading.set(!this.productPages.has(this.productPageKey(category)));
       this.error.set(null);
     }),
-    switchMap(category => this.api.list({
-      category: category ?? undefined,
-      pageSize: 12,
-      sort: 'newest',
-    }).pipe(
+    switchMap(category => this.productsForCategory(category).pipe(
       catchError(() => {
         this.error.set('Could not load products. Is the API running?');
         this.loading.set(false);
         if (this.scrollToInitialCategory) {
           this.scrollToInitialCategory = false;
           this.scrollCollectionIntoView();
+        }
+        if (this.scrollPositionToRestore !== null) {
+          this.restoreScrollPosition(this.scrollPositionToRestore);
         }
         return EMPTY;
       }),
@@ -97,6 +106,8 @@ export class Home {
     const returnProductSlug = this.productListReturnState.consume();
     if (returnProductSlug && page.items.some(product => product.slug === returnProductSlug)) {
       this.restoreProductPosition(returnProductSlug);
+    } else if (this.scrollPositionToRestore !== null) {
+      this.restoreScrollPosition(this.scrollPositionToRestore);
     }
     });
 
@@ -104,7 +115,10 @@ export class Home {
       const category = params.get('category');
       if (this.routeCategoryInitialized && this.selectedCategory() === category) return;
       this.scrollToInitialCategory =
-        !this.routeCategoryInitialized && category !== null && !this.route.snapshot.fragment;
+        !this.routeCategoryInitialized &&
+        category !== null &&
+        !this.route.snapshot.fragment &&
+        this.router.getCurrentNavigation()?.trigger !== 'popstate';
       this.routeCategoryInitialized = true;
       this.selectedCategory.set(category);
       this.categorySelection.next(category);
@@ -117,6 +131,12 @@ export class Home {
         (a, b) => order.indexOf(a.name) - order.indexOf(b.name),
       );
       this.categories.set(orderedCategories);
+      for (const category of orderedCategories) {
+        this.productsForCategory(category.slug).pipe(
+          catchError(() => EMPTY),
+          takeUntilDestroyed(this.destroyRef),
+        ).subscribe();
+      }
     },
     error: () => {
       this.error.set('Could not load collection categories.');
@@ -125,10 +145,37 @@ export class Home {
     });
   }
 
+  private productsForCategory(category: string | null): Observable<Page<ProductSummary>> {
+    const key = this.productPageKey(category);
+    const cachedPage = this.productPages.get(key);
+    if (cachedPage) return of(cachedPage);
+
+    let request = this.productRequests.get(key);
+    if (!request) {
+      request = this.api.list({
+        category: category ?? undefined,
+        pageSize: PRODUCT_PAGE_SIZE,
+        sort: 'newest',
+      }).pipe(
+        tap(page => this.productPages.set(key, page)),
+        finalize(() => this.productRequests.delete(key)),
+        shareReplay({ bufferSize: 1, refCount: false }),
+      );
+      this.productRequests.set(key, request);
+    }
+
+    return request;
+  }
+
+  private productPageKey(category: string | null): string {
+    return category ?? '';
+  }
+
   @HostListener('window:scroll')
   @HostListener('window:resize')
   @HostListener('window:site-header-visibility-change')
   updateFloatingCategories(): void {
+    this.productListReturnState.rememberScrollPosition(window.scrollY);
     const section = this.collectionSection?.nativeElement;
     const filters = this.categoryFilters?.nativeElement;
     const slot = filters?.parentElement;
@@ -162,44 +209,50 @@ export class Home {
 
     filters.style.setProperty('--category-top', `${categoryTop}px`);
     slot.style.setProperty('--category-height', `${filters.offsetHeight}px`);
+    if (!this.productAnchorActive) {
+      this.productListAnchor?.nativeElement.style.setProperty('height', '0px');
+    }
     this.categoriesHeaderHidden.set(headerHidden);
     this.categoriesFloating.set(shouldFloat);
   }
 
   selectCategory(category: Category): void {
     const selectedFromHeader = this.categoriesFloating();
+    this.prepareProductListAnchor(selectedFromHeader);
     this.selectedCategory.set(category.slug);
     this.categorySelection.next(category.slug);
     void this.router.navigate([], {
       relativeTo: this.route,
       queryParams: { category: category.slug },
       queryParamsHandling: 'merge',
-      fragment: 'collection',
+      fragment: selectedFromHeader ? 'collection-products' : 'collection',
     });
-    if (selectedFromHeader) this.scrollProductsBelowHeader();
   }
 
   selectAllCategories(): void {
     const selectedFromHeader = this.categoriesFloating();
+    this.prepareProductListAnchor(selectedFromHeader);
     this.selectedCategory.set(null);
     this.categorySelection.next(null);
     void this.router.navigate([], {
       relativeTo: this.route,
       queryParams: { category: null },
       queryParamsHandling: 'merge',
-      fragment: 'collection',
+      fragment: selectedFromHeader ? 'collection-products' : 'collection',
     });
-    if (selectedFromHeader) this.scrollProductsBelowHeader();
   }
 
-  private scrollProductsBelowHeader(): void {
-    const grid = this.productGrid?.nativeElement;
-    const header = this.siteHeader?.nativeElement;
-    if (!grid || !header) return;
+  private prepareProductListAnchor(selectedFromHeader: boolean): void {
+    this.productAnchorActive = selectedFromHeader;
+    const anchor = this.productListAnchor?.nativeElement;
+    if (!anchor) return;
 
-    const top = grid.getBoundingClientRect().top + window.scrollY - header.offsetHeight;
-    const behavior = window.matchMedia('(prefers-reduced-motion: reduce)').matches ? 'auto' : 'smooth';
-    window.scrollTo({ top: Math.max(0, top), behavior });
+    const filters = this.categoryFilters?.nativeElement;
+    const header = this.siteHeader?.nativeElement;
+    const headerBottom = header && !header.classList.contains('hidden') ? header.offsetHeight : 0;
+    const filtersBottom = filters?.getBoundingClientRect().bottom ?? 0;
+    const offset = selectedFromHeader ? Math.max(headerBottom, filtersBottom) + 12 : 0;
+    anchor.style.setProperty('height', `${offset}px`);
   }
 
   private scrollCollectionIntoView(): void {
@@ -232,6 +285,12 @@ export class Home {
       const filtersHeight = filters?.offsetHeight ?? 0;
       const top = product.getBoundingClientRect().top + window.scrollY - headerHeight - filtersHeight - 16;
       window.scrollTo({ top: Math.max(0, top), behavior: 'auto' });
+    }));
+  }
+
+  private restoreScrollPosition(scrollPosition: number): void {
+    requestAnimationFrame(() => requestAnimationFrame(() => {
+      window.scrollTo({ top: scrollPosition, behavior: 'auto' });
     }));
   }
 
@@ -296,12 +355,11 @@ export class Home {
   }
 
   isFavorite(productId: number): boolean {
-    return this.favoriteProductIds().includes(productId);
+    return this.favorites.isFavorite(productId);
   }
 
   toggleFavorite(productId: number): void {
-    this.favoriteProductIds.update(ids =>
-      ids.includes(productId) ? ids.filter(id => id !== productId) : [...ids, productId]);
+    this.favorites.toggle(productId);
   }
 
   discountPercent(product: ProductSummary): number {

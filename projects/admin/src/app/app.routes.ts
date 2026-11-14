@@ -50,6 +50,12 @@ export const routes: Routes = [
         data: { roles: ['Admin'] },
         loadComponent: () => import('./pages/reports/reports').then(m => m.ReportsPage),
       },
+      {
+        path: 'instagram-posts',
+        canActivate: [authGuard],
+        data: { roles: ['Admin'] },
+        loadComponent: () => import('./pages/instagram-posts/instagram-posts').then(m => m.InstagramPostsPage),
+      },
     ],
   },
   { path: '**', redirectTo: '' },

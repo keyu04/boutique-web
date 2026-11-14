@@ -20,7 +20,7 @@ export const INFO_PAGES: Record<string, InfoPageContent> = {
     sections: [
       { title: 'Where we deliver', icon: 'location', body: ['We deliver across India, subject to courier service availability at your pincode.'] },
       { title: 'Shipping charges', icon: 'shipping', body: ['Charges are based on your delivery location. Enter your pincode in the bag to see the exact charge and the expected delivery date before you order.', 'When your bag qualifies, delivery is free. The bag shows how much more you need to add.'] },
-      { title: 'Payment on delivery', icon: 'payment', body: ['Cash on delivery is available. Online payment is coming soon.'] },
+      { title: 'Payment', icon: 'payment', body: ['Choose cash on delivery or online payment. For online payment, send your order message on WhatsApp and we will reply with a QR code.'] },
       { title: 'Order processing', icon: 'processing', body: ['Orders are packed within about one business day of being placed. We may contact you if we need more information.'] },
       { title: 'Delivery time', icon: 'delivery', body: ['The expected delivery date is shown for your pincode. Couriers can be delayed by weather, local conditions or incorrect addresses, so it is an estimate and not a guarantee.'] },
       { title: 'Track your order', icon: 'tracking', body: ['Use Track Your Order with your order number and phone number to see where your parcel is.'] },
@@ -84,7 +84,7 @@ export const INFO_PAGES: Record<string, InfoPageContent> = {
     sections: [
       { title: 'Products & pricing', icon: 'price-tag', body: ['We aim to show products and prices accurately. Colours can look different on different screens. Prices and availability may change without notice.'] },
       { title: 'Orders', icon: 'orders', body: ['We may contact you to confirm details. We may cancel an order for reasons such as incorrect pricing, product unavailability or incomplete information. If we cancel a paid order, you receive a full refund.'] },
-      { title: 'Payment', icon: 'payment', body: ['Orders are currently paid by cash on delivery. All prices are in INR.'] },
+      { title: 'Payment', icon: 'payment', body: ['Choose cash on delivery or online payment by QR code on WhatsApp. For online payment, message us with your order details; payment is pending until we confirm it. All prices are in INR.'] },
       { title: 'Shipping & delivery', icon: 'shipping', body: ['Delivery availability, charges and times depend on your location and courier availability. Please give accurate delivery details. We are not responsible for delays caused by incorrect or incomplete addresses or by couriers.'] },
       { title: 'Returns & exchanges', icon: 'exchange', body: ['Returns and exchanges follow our Returns & Exchanges page. Please read it before ordering.'] },
       { title: 'Product information', icon: 'product-info', body: ['Minor variations in colour, design, fabric texture or appearance may occur. Please check the product details and size information before ordering.'] },

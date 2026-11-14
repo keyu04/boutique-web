@@ -1,0 +1,63 @@
+<app-site-header />
+
+<main class="page" [attr.aria-busy]="loading()">
+  <div class="page-title">
+    <h1>Your wishlist</h1>
+    @if (favorites.productIds().length > 0) {
+      <span>{{ favorites.productIds().length }} {{ favorites.productIds().length === 1 ? 'item' : 'items' }}</span>
+    }
+  </div>
+
+  @if (loading()) {
+    <div class="grid skeleton-grid" role="status" aria-label="Loading your wishlist">
+      @for (productId of favorites.productIds(); track productId) {
+        <article class="item skeleton-item" aria-hidden="true">
+          <div class="skeleton-image"></div>
+          <div class="skeleton-copy">
+            <span></span>
+            <span></span>
+          </div>
+        </article>
+      }
+    </div>
+  } @else if (error(); as message) {
+    <p class="error" role="alert">{{ message }}</p>
+  } @else if (products().length === 0) {
+    <div class="empty">
+      <p>Your wishlist is empty.</p>
+      <a class="btn" routerLink="/">Browse the collection</a>
+    </div>
+  } @else {
+    <div class="grid">
+      @for (product of products(); track product.id) {
+        <article class="item">
+          <div class="product-image">
+            <a class="image-link" [routerLink]="['/product', product.slug]" [attr.aria-label]="'View ' + product.name">
+              @if (product.image) { <img [src]="product.image" [alt]="product.name" loading="lazy" /> }
+            </a>
+            @if (product.tag) { <span class="tag">{{ product.tag }}</span> }
+            <button type="button" class="favorite-toggle favorite"
+                    [attr.aria-label]="'Remove ' + product.name + ' from wishlist'"
+                    aria-pressed="true" (click)="remove(product.id)">
+              <svg viewBox="0 0 24 24" aria-hidden="true">
+                <path d="M20.8 4.6a5.5 5.5 0 0 0-7.8 0L12 5.7l-1.1-1.1a5.5 5.5 0 0 0-7.8 7.8l1.1 1.1L12 21l7.8-7.5 1.1-1.1a5.5 5.5 0 0 0-.1-7.8Z" />
+              </svg>
+            </button>
+          </div>
+          <a class="product-copy" [routerLink]="['/product', product.slug]">
+            <h3>{{ product.name }}</h3>
+            <p class="price">
+              <strong>{{ product.price | currency: 'INR' : 'symbol' : '1.0-0' }}</strong>
+              @if (product.mrp > product.price) {
+                <s>{{ product.mrp | currency: 'INR' : 'symbol' : '1.0-0' }}</s>
+                <span class="discount">{{ discountPercent(product) }}% OFF</span>
+              }
+            </p>
+          </a>
+        </article>
+      }
+    </div>
+  }
+</main>
+
+<app-site-footer />

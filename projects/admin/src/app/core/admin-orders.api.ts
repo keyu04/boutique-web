@@ -28,6 +28,12 @@ export class AdminOrdersApi {
     setStatus(id: number, status: string) {
         return this.http.patch<AdminOrder>(`${this.baseUrl}/admin/orders/${id}/status`, { status });
     }
+
+    markPaymentPaid(id: number, paymentReference?: string) {
+        return this.http.patch<AdminOrder>(`${this.baseUrl}/admin/orders/${id}/payment`, {
+            paymentReference: paymentReference?.trim() || null,
+        });
+    }
 }
 
 @Injectable({ providedIn: 'root' })

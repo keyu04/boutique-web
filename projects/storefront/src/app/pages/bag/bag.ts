@@ -13,7 +13,7 @@ import { SiteFooter } from '../../core/site-footer';
 
 type ShippingResult = ShippingEstimate & { pincode: string };
 
-// Cash on delivery is the only payment option for now. Keep this in step with the checkout page.
+// The bag estimates COD shipping before a payment method is selected at checkout.
 const PAYMENT_METHOD = 'Cod';
 
 @Component({

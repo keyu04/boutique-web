@@ -19,6 +19,7 @@ import { AuthService } from '../core/auth.service';
           <a routerLink="/orders" routerLinkActive="active">Orders</a>
           @if (auth.isAdmin()) {
             <a routerLink="/products" routerLinkActive="active">Products</a>
+          <a routerLink="/instagram-posts" routerLinkActive="active">Instagram posts</a>
             <a routerLink="/reports" routerLinkActive="active">Reports</a>
           }
         </nav>

@@ -11,6 +11,8 @@
     <div class="hero-art">
       <img [src]="f.image" [alt]="f.name" />
     </div>
+    } @else if (loading()) {
+    <div class="hero-art hero-art-placeholder" aria-hidden="true"></div>
     }
   </section>
 
@@ -79,7 +81,19 @@
         </div>
       </div>
 
+      <div #productListAnchor id="collection-products" class="product-list-anchor" aria-hidden="true"></div>
       @if (loading() && products().length === 0) {
+      <div class="grid skeleton-grid" aria-hidden="true">
+        @for (placeholder of loadingPlaceholders; track placeholder) {
+          <article class="skeleton-card">
+            <div class="skeleton-image"></div>
+            <div class="skeleton-copy">
+              <div class="skeleton-line"></div>
+              <div class="skeleton-line short"></div>
+            </div>
+          </article>
+        }
+      </div>
       <p class="status">Loading the collection…</p>
       } @else if (error() && products().length === 0) {
       <p class="error">{{ error() }}</p>
@@ -89,9 +103,11 @@
       @if (error(); as message) {
         <p class="error" role="alert">{{ message }}</p>
       }
-      <div #productGrid class="grid" [class.updating]="loading()" [attr.aria-busy]="loading()">
-        @for (p of products(); track p.id) {
-        <article class="item" [attr.data-product-slug]="p.slug">
+      <div class="product-results">
+        <p class="updating-status" role="status" [hidden]="!loading()">Updating collection…</p>
+        <div #productGrid class="grid" [attr.aria-busy]="loading()">
+          @for (p of products(); track p.id) {
+          <article class="item" [attr.data-product-slug]="p.slug">
           <div class="product-image">
             <a class="image-link" [routerLink]="['/product', p.slug]"
                [attr.aria-label]="'View ' + p.name" (click)="rememberProductForReturn(p.slug, $event)">
@@ -169,8 +185,9 @@
           @if (quickAddMessageProductId() === p.id && quickAddMessage(); as message) {
             <p class="card-message" [class.success]="quickAddSuccess()" [attr.role]="quickAddSuccess() ? 'status' : 'alert'">{{ message }}</p>
           }
-        </article>
-        }
+          </article>
+          }
+        </div>
       </div>
       }
     </div>

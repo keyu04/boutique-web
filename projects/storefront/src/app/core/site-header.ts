@@ -2,6 +2,7 @@ import { Component, DestroyRef, ElementRef, HostListener, Input, inject } from '
 import { RouterLink } from '@angular/router';
 import { BRAND } from '@shared';
 import { BagService } from './bag.service';
+import { FavoritesService } from './favorites.service';
 
 @Component({
   selector: 'app-site-header',
@@ -12,7 +13,7 @@ import { BagService } from './bag.service';
         <img class="brand-mark" src="/assets/sahjish-monogram.png" alt="" />
         <span class="wordmark">{{ brand.name }}</span>
       </a>
-      <nav class="header-actions" aria-label="Order links">
+      <nav class="header-actions" aria-label="Shopping and order links">
         @if (trackingPage) {
           <a class="continue-link" routerLink="/">Continue shopping
             <svg viewBox="0 0 20 20" aria-hidden="true"><path d="M3 10h13M10 4l6 6-6 6" /></svg>
@@ -28,6 +29,14 @@ import { BagService } from './bag.service';
             </svg>
           </a>
         }
+        <a class="wishlist-link" routerLink="/wishlist"
+           [attr.aria-label]="'Wishlist, ' + favorites.productIds().length + (favorites.productIds().length === 1 ? ' item' : ' items')"
+           title="Wishlist">
+          <svg viewBox="0 0 24 24" aria-hidden="true">
+            <path d="M20.8 4.6a5.5 5.5 0 0 0-7.8 0L12 5.7l-1.1-1.1a5.5 5.5 0 0 0-7.8 7.8l1.1 1.1L12 21l7.8-7.5 1.1-1.1a5.5 5.5 0 0 0-.1-7.8Z" />
+          </svg>
+          <span class="count">{{ favorites.productIds().length }}</span>
+        </a>
         <a class="bag-link" routerLink="/bag" [attr.aria-label]="'Bag, ' + bag.count() + (bag.count() === 1 ? ' item' : ' items')">
           <svg viewBox="0 0 36 36" aria-hidden="true">
             <path d="M7 13h22l2 19H5l2-19Z" />
@@ -64,6 +73,12 @@ import { BagService } from './bag.service';
     .track-link:hover svg { transform: translateY(-1px); }
     .track-link svg { transition: transform 150ms ease; }
     .track-link:focus-visible { outline: 2px solid var(--burgundy, #5c1a2e); outline-offset: 4px; }
+    .wishlist-link { position: relative; display: inline-flex; width: 36px; height: 36px; align-items: center;
+      justify-content: center; color: var(--burgundy, #5c1a2e); text-decoration: none; }
+    .wishlist-link svg { width: 24px; height: 24px; fill: none; stroke: currentColor; stroke-width: 1.8;
+      stroke-linecap: round; stroke-linejoin: round; transition: transform 150ms ease; }
+    .wishlist-link:hover svg { transform: translateY(-1px); }
+    .wishlist-link:focus-visible { outline: 2px solid var(--burgundy, #5c1a2e); outline-offset: 4px; }
     .bag-link { position: relative; display: inline-flex; width: 36px; height: 36px; align-items: center;
       justify-content: center; color: var(--burgundy, #5c1a2e); text-decoration: none; }
     .bag-link svg { width: 26px; height: 26px; fill: none; stroke: currentColor; stroke-width: 2;
@@ -93,6 +108,7 @@ export class SiteHeader {
   @Input() trackingPage = false;
   readonly brand = BRAND;
   readonly bag = inject(BagService);
+  readonly favorites = inject(FavoritesService);
 
   constructor() {
     this.destroyRef.onDestroy(() => this.clearIdleTimer());

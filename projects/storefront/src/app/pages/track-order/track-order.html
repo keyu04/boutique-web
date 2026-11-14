@@ -103,9 +103,11 @@
             }
           </ul>
           <p class="total">Total <strong>{{ o.total | currency: 'INR' : 'symbol' : '1.0-0' }}</strong>
-            <span class="muted"> · {{ paymentLabel(o.paymentMethod) }}</span></p>
+            <span class="muted"> · {{ paymentLabel(o.paymentMethod) }} · {{ paymentStatusLabel(o.paymentStatus) }}</span></p>
           @if (codDue()) {
             <p class="cod">Please keep {{ o.total | currency: 'INR' : 'symbol' : '1.0-0' }} ready to pay in cash when your order arrives.</p>
+          } @else if (o.paymentMethod !== 'Cod' && o.paymentStatus !== 'Paid') {
+            <p class="cod">Payment is pending. Message us on WhatsApp with your order number and we’ll send you a QR code.</p>
           }
         </div>
       </section>

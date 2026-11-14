@@ -34,8 +34,8 @@ h2 { font-family: $display; font-size: 1.5rem; font-weight: 500; line-height: 1.
 
 .payment-section { border-top: 1px solid $line; padding-top: 17px; }
 .payment-section .section-heading { margin-bottom: 12px; }
-.pay { position: relative; display: flex; align-items: center; gap: 13px; min-height: 62px; padding: 10px 14px; margin-bottom: 10px; border: 1px solid $burgundy; border-radius: 3px; background: #f8f3f4; cursor: pointer; box-sizing: border-box; }
-.pay.disabled { border-color: $line; background: #f1ece5; color: #918a84; cursor: not-allowed; }
+.pay { position: relative; display: flex; align-items: center; gap: 13px; min-height: 62px; padding: 10px 14px; margin-bottom: 10px; border: 1px solid $line; border-radius: 3px; background: #fffdfa; cursor: pointer; box-sizing: border-box; }
+.pay.selected { border-color: $burgundy; background: #f8f3f4; }
 .pay input { position: absolute; width: 1px; height: 1px; opacity: 0; }
 .radio-mark { display: inline-flex; flex: 0 0 13px; width: 13px; height: 13px; align-items: center; justify-content: center; border: 1px solid #aaa39d; border-radius: 50%; }
 .pay input:checked + .radio-mark { border-color: $burgundy; }
@@ -43,9 +43,7 @@ h2 { font-family: $display; font-size: 1.5rem; font-weight: 500; line-height: 1.
 .pay-copy { display: flex; flex-direction: column; gap: 2px; font-size: 0.95rem; }
 .pay-copy strong { font-weight: 500; }
 .pay-copy small { color: $muted; font-size: 0.9rem; }
-.disabled .pay-copy small { color: #918a84; }
 .pay-icon { width: 14px; height: 12px; margin-left: auto; fill: none; stroke: $burgundy; stroke-width: 1; }
-.disabled .pay-icon { stroke: #aaa39d; }
 .pay input:focus-visible + .radio-mark { outline: 2px solid $burgundy; outline-offset: 3px; }
 
 .summary { border: 1px solid $line; border-radius: 6px; background: #fffdfa; padding: 22px 22px 18px; }

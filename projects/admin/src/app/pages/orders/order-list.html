@@ -104,7 +104,7 @@
                     } @else {
                       <svg viewBox="0 0 14 14" aria-hidden="true"><circle cx="7" cy="7" r="5.2" /><path d="M7 4.2v3.1l1.8 1" /></svg>
                     }
-                    {{ o.paymentStatus }}
+                    {{ paymentStatusLabel(o.paymentStatus) }}
                   </span>
                 </td>
                 <td><app-status-badge [status]="o.status" /></td>
