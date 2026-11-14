@@ -5,9 +5,11 @@ import { Title } from '@angular/platform-browser';
 import { CategoriesApi, ProductsApi } from '@shared';
 import { of } from 'rxjs';
 import { BagService } from '../../core/bag.service';
+import { FavoritesService } from '../../core/favorites.service';
 import { Home } from './home';
 
 describe('Home', () => {
+  const favoritesStorageKey = 'sahjish.favorites.v1';
   let component: Home;
   let fixture: ComponentFixture<Home>;
   const products = [
@@ -18,6 +20,7 @@ describe('Home', () => {
   ];
 
   beforeEach(async () => {
+    localStorage.removeItem(favoritesStorageKey);
     await TestBed.configureTestingModule({
       imports: [Home],
       providers: [
@@ -34,12 +37,23 @@ describe('Home', () => {
   });
 
   afterEach(() => {
+    localStorage.removeItem(favoritesStorageKey);
     vi.unstubAllGlobals();
     vi.restoreAllMocks();
   });
 
   it('should create', () => {
     expect(component).toBeTruthy();
+  });
+
+  it('persists favorites so they are restored by a new service instance', () => {
+    component.toggleFavorite(1);
+
+    expect(localStorage.getItem(favoritesStorageKey)).toBe('[1]');
+    expect(new FavoritesService().isFavorite(1)).toBe(true);
+
+    component.toggleFavorite(1);
+    expect(new FavoritesService().isFavorite(1)).toBe(false);
   });
 
   it('restores the storefront title after returning from another page', () => {

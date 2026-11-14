@@ -6,6 +6,7 @@ import { CategoriesApi, Category, ProductsApi, ProductDetail, ProductImage, Prod
 import { ActivatedRoute, Router, RouterLink } from '@angular/router';
 import { EMPTY, Subject, catchError, switchMap, tap } from 'rxjs';
 import { BagService } from '../../core/bag.service';
+import { FavoritesService } from '../../core/favorites.service';
 import { formatPageTitle } from '../../core/page-title';
 import { ProductListReturnState } from '../../core/product-list-return-state';
 import { SiteHeader } from '../../core/site-header';
@@ -36,6 +37,7 @@ export class Home {
 
   readonly brand = BRAND;
   readonly bag = inject(BagService);
+  readonly favorites = inject(FavoritesService);
   readonly categories = signal<Category[]>([]);
   readonly products = signal<ProductSummary[]>([]);
   readonly loading = signal(true);
@@ -51,7 +53,6 @@ export class Home {
   readonly quickAddMessageProductId = signal<number | null>(null);
   readonly quickAddMessage = signal<string | null>(null);
   readonly quickAddSuccess = signal(false);
-  readonly favoriteProductIds = signal<number[]>([]);
   readonly categoriesFloating = signal(false);
   readonly categoriesHeaderHidden = signal(false);
   readonly categoriesHeaderRevealing = signal(false);
@@ -296,12 +297,11 @@ export class Home {
   }
 
   isFavorite(productId: number): boolean {
-    return this.favoriteProductIds().includes(productId);
+    return this.favorites.isFavorite(productId);
   }
 
   toggleFavorite(productId: number): void {
-    this.favoriteProductIds.update(ids =>
-      ids.includes(productId) ? ids.filter(id => id !== productId) : [...ids, productId]);
+    this.favorites.toggle(productId);
   }
 
   discountPercent(product: ProductSummary): number {
