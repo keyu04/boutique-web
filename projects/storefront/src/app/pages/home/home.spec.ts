@@ -172,6 +172,28 @@ describe('Home', () => {
     expect(scrollTo).toHaveBeenCalledWith({ top: 1800, behavior: 'auto' });
   });
 
+  it('does not reapply the restored scroll position after switching categories', async () => {
+    fixture.destroy();
+    TestBed.inject(ProductListReturnState).rememberScrollPosition(1800);
+
+    const frames: FrameRequestCallback[] = [];
+    vi.stubGlobal('requestAnimationFrame', (callback: FrameRequestCallback) => {
+      frames.push(callback);
+      return frames.length;
+    });
+    const scrollTo = vi.spyOn(window, 'scrollTo').mockImplementation(() => undefined);
+
+    fixture = TestBed.createComponent(Home);
+    component = fixture.componentInstance;
+    fixture.detectChanges();
+
+    component.selectCategory({ id: 2, name: 'Kurta Sets', slug: 'kurta-sets' });
+    await fixture.whenStable();
+    while (frames.length) frames.shift()?.(0);
+
+    expect(scrollTo).not.toHaveBeenCalled();
+  });
+
   it('keeps the Home layout stable while products are loading', () => {
     fixture.destroy();
     vi.spyOn(TestBed.inject(ProductsApi), 'list').mockReturnValue(NEVER);

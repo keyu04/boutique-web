@@ -34,7 +34,8 @@ export class Home {
   private routeCategoryInitialized = false;
   private scrollToInitialCategory = false;
   private productAnchorActive = false;
-  private readonly scrollPositionToRestore: number | null;
+  private scrollRestoreGeneration = 0;
+  private scrollPositionToRestore: number | null;
 
   @ViewChild('collectionSection') private collectionSection?: ElementRef<HTMLElement>;
   @ViewChild('categoryFilters') private categoryFilters?: ElementRef<HTMLElement>;
@@ -87,7 +88,7 @@ export class Home {
           this.scrollCollectionIntoView();
         }
         if (this.scrollPositionToRestore !== null) {
-          this.restoreScrollPosition(this.scrollPositionToRestore);
+          this.restorePendingScrollPosition();
         }
         return EMPTY;
       }),
@@ -107,13 +108,14 @@ export class Home {
     if (returnProductSlug && page.items.some(product => product.slug === returnProductSlug)) {
       this.restoreProductPosition(returnProductSlug);
     } else if (this.scrollPositionToRestore !== null) {
-      this.restoreScrollPosition(this.scrollPositionToRestore);
+      this.restorePendingScrollPosition();
     }
     });
 
     this.route.queryParamMap.pipe(takeUntilDestroyed()).subscribe(params => {
       const category = params.get('category');
       if (this.routeCategoryInitialized && this.selectedCategory() === category) return;
+      if (this.routeCategoryInitialized) this.cancelPendingScrollRestore();
       this.scrollToInitialCategory =
         !this.routeCategoryInitialized &&
         category !== null &&
@@ -217,6 +219,7 @@ export class Home {
   }
 
   selectCategory(category: Category): void {
+    this.cancelPendingScrollRestore();
     const selectedFromHeader = this.categoriesFloating();
     this.prepareProductListAnchor(selectedFromHeader);
     this.selectedCategory.set(category.slug);
@@ -230,6 +233,7 @@ export class Home {
   }
 
   selectAllCategories(): void {
+    this.cancelPendingScrollRestore();
     const selectedFromHeader = this.categoriesFloating();
     this.prepareProductListAnchor(selectedFromHeader);
     this.selectedCategory.set(null);
@@ -289,9 +293,22 @@ export class Home {
   }
 
   private restoreScrollPosition(scrollPosition: number): void {
+    const generation = this.scrollRestoreGeneration;
     requestAnimationFrame(() => requestAnimationFrame(() => {
+      if (generation !== this.scrollRestoreGeneration) return;
       window.scrollTo({ top: scrollPosition, behavior: 'auto' });
     }));
+  }
+
+  private cancelPendingScrollRestore(): void {
+    this.scrollPositionToRestore = null;
+    this.scrollRestoreGeneration++;
+  }
+
+  private restorePendingScrollPosition(): void {
+    const scrollPosition = this.scrollPositionToRestore;
+    this.scrollPositionToRestore = null;
+    if (scrollPosition !== null) this.restoreScrollPosition(scrollPosition);
   }
 
   imageFor(product: ProductSummary): string | null {
